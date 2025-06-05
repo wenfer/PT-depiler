@@ -1,4 +1,4 @@
-import { ISiteMetadata } from "@ptd/site";
+import { type ISiteMetadata } from "../types";
 import { SchemaMetadata } from "../schemas/NexusPHP";
 
 export const siteMetadata: ISiteMetadata = {
@@ -17,7 +17,7 @@ export const siteMetadata: ISiteMetadata = {
 
   collaborator: ["csi0n", "zhuweitung", "hui-shao"],
 
-  urls: ["aHR0cHM6Ly9oZGZhbnMub3JnLw=="],
+  urls: ["ROT13:uggcf://uqsnaf.bet/"],
 
   levelRequirements: [
     {

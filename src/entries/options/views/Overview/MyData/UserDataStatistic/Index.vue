@@ -49,7 +49,6 @@ useEcharts([TitleComponent, TooltipComponent, LegendComponent, GridComponent, Li
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
-const metadataStore = useMetadataStore();
 const configStore = useConfigStore();
 const chartContainerRef = useTemplateRef<HTMLDivElement>("chartContainer");
 const { width: containerWidth } = useElementSize(chartContainerRef);
@@ -163,10 +162,27 @@ const totalSiteSeedingInfoChartOptions = computed(() => {
   } as EChartsLineChartOption;
 });
 
-const createPerSiteChartOptionsFn = (field: keyof IStoredUserInfo, format: keyof typeof formatDict) =>
+const createPerSiteChartOptionsFn = (
+  field: keyof IStoredUserInfo,
+  format: keyof typeof formatDict,
+  incr: boolean = false,
+) =>
   computed(() => {
     const series = selectedSites.value.map((site) => {
-      const data = selectedDateRanges.value.map((date) => selectedDataComputed.value[date]?.[site]?.[field] ?? 0);
+      let data;
+      if (incr) {
+        data = selectedDateRanges.value.map((date) => {
+          const currentData = selectedDataComputed.value[date]?.[site]?.[field] ?? 0;
+          const previousData =
+            selectedDataComputed.value[selectedDateRanges.value[selectedDateRanges.value.indexOf(date) - 1]]?.[site]?.[
+              field
+            ] ?? 0;
+          return currentData - previousData;
+        });
+      } else {
+        data = selectedDateRanges.value.map((date) => selectedDataComputed.value[date]?.[site]?.[field] ?? 0);
+      }
+
       return {
         name: site,
         type: "bar",
@@ -192,7 +208,10 @@ const createPerSiteChartOptionsFn = (field: keyof IStoredUserInfo, format: keyof
     const seriesTotal = series.map((x) => ({ name: x.name, value: x.data.reduce((a, b) => a + b, 0) }));
 
     return {
-      title: { text: `[${configStore.userName}] ${t("UserDataStatistic.chart.perSiteK" + field)}`, left: "center" },
+      title: {
+        text: `[${configStore.userName}] ${t("UserDataStatistic.chart.perSiteK" + field + (incr ? "Incr" : ""))}`,
+        left: "center",
+      },
       tooltip: { trigger: "item" },
       legend: {
         data: seriesTotal.sort((a, b) => b.value - a.value).map((x) => x.name),
@@ -219,8 +238,6 @@ const perSiteChartField: [keyof IStoredUserInfo, keyof typeof formatDict][] = [
 // echarts 主题
 const echartsTheme = computed(() => (configStore.uiTheme === "dark" ? "dark" : null));
 provide(THEME_KEY, echartsTheme);
-
-const siteData = ref<Record<string, { name: string; icon: string }>>({});
 
 onMounted(async () => {
   rawDataRef.value = await loadFullData();
@@ -328,7 +345,18 @@ function saveControl() {
             :style="{ height: `${perChartHeight}px` }"
             autoresize
             class="chart"
-          ></v-chart>
+          />
+          <v-chart
+            v-if="
+              // @ts-ignore
+              configStore.userStatisticControl.showChart[`perSiteK${field}Incr`]
+            "
+            :group="`perSiteK${field}Incr`"
+            :option="createPerSiteChartOptionsFn(field, format, true).value"
+            :style="{ height: `${perChartHeight}px` }"
+            autoresize
+            class="chart"
+          />
         </template>
       </v-col>
       <v-col>

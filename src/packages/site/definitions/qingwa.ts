@@ -1,21 +1,14 @@
 import { merge, mergeWith } from "es-toolkit";
 import { set } from "es-toolkit/compat";
 
-import {
-  createDocument,
-  IAdvancedSearchRequestConfig,
-  TSelectSearchCategoryValue,
-  ISiteMetadata,
-  IUserInfo,
-  GB,
-  TB,
-} from "@ptd/site";
+import type { IAdvancedSearchRequestConfig, TSelectSearchCategoryValue, ISiteMetadata, IUserInfo } from "../types";
+import { GB, TB, createDocument } from "../utils";
 import NexusPHP, {
   CategoryInclbookmarked,
   CategoryIncldead,
   CategorySpstate,
   SchemaMetadata,
-} from "@ptd/site/schemas/NexusPHP";
+} from "../schemas/NexusPHP";
 
 const levelRequirements: ISiteMetadata["levelRequirements"] = [
   {
@@ -337,9 +330,10 @@ export const siteMetadata: ISiteMetadata = {
   tags: ["综合", "影视", "动漫", "儿童区", "纪录片"],
 
   urls: [
-    "aHR0cHM6Ly93d3cucWluZ3dhcHQuY29tLw==",
-    "aHR0cHM6Ly93d3cucWluZ3dhcHQub3JnLw==",
-    "aHR0cHM6Ly93d3cucWluZ3dhLnByby8=",
+    "ROT13:uggcf://jjj.dvatjncg.pbz/",
+    "ROT13:uggcf://jjj.dvatjncg.bet/",
+    "ROT13:uggcf://jjj.dvatjn.ceb/",
+    "ROT13:uggcf://dvatjncg.pbz/", // 增加一个和ptpp中 host 一样的url （经过实测也能访问）
   ],
   collaborator: ["Eason Wong"],
 

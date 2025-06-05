@@ -33,6 +33,7 @@ type TMessageMap = Record<string, (data: any) => any>;
 interface ProtocolMap extends TMessageMap {
   // 1. 与 chrome 相关的功能，需要在 service worker 中注册，主要供 offscreen, options 使用
   ping<T extends any>(data?: T): T extends undefined ? "pong" : T;
+  openOptionsPage(url?: string | { path: string; query?: Record<string, any> }): void;
 
   // 1.1 chrome.downloads
   downloadFile(downloadOptions: chrome.downloads.DownloadOptions): number;
@@ -155,6 +156,10 @@ function createMessageWrapper<PM extends ProtocolMap>(original: {
   ): Promise<ReturnType<PM[K]>> => {
     // @ts-expect-error
     const localHandler = messageMaps[type] as PM[K] | undefined;
+
+    if (__BROWSER__ == "firefox" && typeof data !== "undefined") {
+      data = JSON.parse(JSON.stringify(data)); // 为 firefox 深拷贝数据，避免传递 proxy 出现的 DataCloneError
+    }
 
     if (localHandler) {
       return await localHandler({ data }); // 执行本地异步处理

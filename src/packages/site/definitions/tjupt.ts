@@ -1,6 +1,7 @@
-import { ETorrentStatus, type IElementQuery, type ISiteMetadata } from "@ptd/site";
-import { CategoryInclbookmarked, CategoryIncldead, SchemaMetadata } from "../schemas/NexusPHP";
 import { set } from "es-toolkit/compat";
+
+import { ETorrentStatus, type IElementQuery, type ISiteMetadata } from "../types";
+import { CategoryInclbookmarked, CategoryIncldead, SchemaMetadata } from "../schemas/NexusPHP";
 
 // TJUPT 中的 selector.search.progress 以及 selector.search.status 被其他站公用
 export const selectorSearchProgress: IElementQuery = {
@@ -44,7 +45,7 @@ export const siteMetadata: ISiteMetadata = {
   name: "北洋园PT",
   schema: "NexusPHP",
   type: "private",
-  urls: ["aHR0cHM6Ly90anVwdC5vcmcv"],
+  urls: ["ROT13:uggcf://gwhcg.bet/"],
   description:
     "TJUPT是天津市首个、全国前列的校园Private Tracker，建立于2010年，" +
     "由天津大学信网协会和天外天共同开发的，旨在为大家建立一个更好的资源共享环境，提高资源水准。",
@@ -145,6 +146,10 @@ export const siteMetadata: ISiteMetadata = {
       uploaded: {
         selector: ["td.rowhead:contains('上传量') + td"],
         filters: [{ name: "parseSize" }],
+      },
+      messageCount: {
+        ...SchemaMetadata.userInfo!.selectors!.messageCount,
+        selector: ["#msg-bar a[href*='messages.php'] strong"],
       },
     },
     process: [

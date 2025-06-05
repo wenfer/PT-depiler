@@ -1,10 +1,5 @@
-import { ISiteMetadata } from "@ptd/site";
-import {
-  CategoryIncldead,
-  CategorySpstate,
-  CategoryInclbookmarked,
-  SchemaMetadata,
-} from "@ptd/site/schemas/NexusPHP.ts";
+import type { ISiteMetadata } from "../types";
+import { CategoryIncldead, CategorySpstate, CategoryInclbookmarked, SchemaMetadata } from "../schemas/NexusPHP.ts";
 
 export const siteMetadata: ISiteMetadata = {
   ...SchemaMetadata,
@@ -21,7 +16,7 @@ export const siteMetadata: ISiteMetadata = {
   type: "private",
   schema: "NexusPHP",
 
-  urls: ["aHR0cHM6Ly9yb3VzaS56aXAv"],
+  urls: ["ROT13:uggcf://ebhfv.mvc/"],
   favicon: "./rousi.ico",
 
   category: [

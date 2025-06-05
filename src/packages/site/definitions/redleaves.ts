@@ -1,10 +1,5 @@
-import { IAdvancedSearchRequestConfig, ISiteMetadata } from "@ptd/site";
-import {
-  CategoryInclbookmarked,
-  CategoryIncldead,
-  CategorySpstate,
-  SchemaMetadata,
-} from "@ptd/site/schemas/NexusPHP.ts";
+import type { IAdvancedSearchRequestConfig, ISiteMetadata } from "../types";
+import { CategoryInclbookmarked, CategoryIncldead, CategorySpstate, SchemaMetadata } from "../schemas/NexusPHP.ts";
 
 export const siteMetadata: ISiteMetadata = {
   ...SchemaMetadata,
@@ -20,7 +15,7 @@ export const siteMetadata: ISiteMetadata = {
   type: "private",
   schema: "NexusPHP",
 
-  urls: ["aHR0cHM6Ly9sZWF2ZXMucmVkLw=="],
+  urls: ["ROT13:uggcf://yrnirf.erq/"],
 
   collaborator: ["CosmoGao", "tedzhu", "hui-shao"],
 
@@ -147,6 +142,19 @@ export const siteMetadata: ISiteMetadata = {
     area_torrents: { name: "影视", requestConfig: { url: "/torrents.php" }, enabled: false },
     area_special: { name: "有声", requestConfig: { url: "/special.php" }, enabled: false },
     area_games: { name: "游戏", requestConfig: { url: "/games.php" }, enabled: false },
+  },
+
+  userInfo: {
+    ...SchemaMetadata.userInfo!,
+    selectors: {
+      ...SchemaMetadata.userInfo!.selectors!,
+      name: {
+        selector: "a[href*='userdetails.php'][class*='Name']:first > b",
+        elementProcess: (element) => {
+          return (element.firstChild.textContent || "").trim();
+        },
+      },
+    },
   },
 
   levelRequirements: [

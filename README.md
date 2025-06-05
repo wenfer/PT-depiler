@@ -32,11 +32,11 @@ PT-depiler 是在原 [PT-Plugin-Plus](https://github.com/pt-plugins/PT-Plugin-Pl
 
 #### 1. 从各个浏览器的扩展商店安装
 
-|          浏览器           | 状态                                                                                                                                                    |
-|:----------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------|
-|    Chrome Web Store    | 已提交待审核                                                                                                                                                | 
-|    Firefox Add-ons     | [![Mozilla Firefox](https://img.shields.io/amo/v/pt-depiler.svg?label=Mozilla%20Firefox)](https://addons.mozilla.org/zh-CN/firefox/addon/pt-depiler/) | 
-| Microsoft Edge Add-ons | 已提交待审核                                                                                                                                                |
+|          浏览器           | 状态                                                                                                                                                                                                                                                                                                                                |
+|:----------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|    Chrome Web Store    | 已提交待审核                                                                                                                                                                                                                                                                                                                            | 
+|    Firefox Add-ons     | [![Mozilla Firefox](https://img.shields.io/amo/v/pt-depiler.svg?label=Mozilla%20Firefox)](https://addons.mozilla.org/zh-CN/firefox/addon/pt-depiler/)                                                                                                                                                                             | 
+| Microsoft Edge Add-ons | [![Microsoft Edge](https://img.shields.io/badge/dynamic/json?label=Edge%20Addons&prefix=v&query=%24.version&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2FAddons%2Fgetproductdetailsbycrxid%2Fkbijhmckhndmeckonoikakdfdlbnlkde)](https://microsoftedge.microsoft.com/addons/detail/pt-depiler/kbijhmckhndmeckonoikakdfdlbnlkde) |
 
 #### 2. 从 Github Action 或者 Release 中获取并安装
 
@@ -85,4 +85,4 @@ Copyright (c) 2020-present [pt-plugins](https://github.com/pt-plugins)
 
 特别感谢以下所有为本项目做出贡献的人 😍！
 
-[![Contributors](https://opencollective.com/pt-depiler/contributors.svg?width=890&button=false)](../../graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=pt-plugins/PT-depiler)](../../graphs/contributors)

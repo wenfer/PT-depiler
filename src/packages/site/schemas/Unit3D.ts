@@ -1,9 +1,10 @@
-import PrivateSite from "./AbstractPrivateSite";
-import { ISiteMetadata, IUserInfo, ETorrentStatus, EResultParseStatus } from "../types";
-import { parseSizeString, parseValidTimeString } from "../utils";
 import urlJoin from "url-join";
+import { omit, toMerged } from "es-toolkit";
 import { set } from "es-toolkit/compat";
-import { toMerged } from "es-toolkit";
+
+import PrivateSite from "./AbstractPrivateSite";
+import { ETorrentStatus, EResultParseStatus, type ISiteMetadata, type IUserInfo } from "../types";
+import { parseSizeString, parseValidTimeString } from "../utils";
 
 /**
  * Trans Array
@@ -129,7 +130,7 @@ export const SchemaMetadata: Partial<ISiteMetadata> = {
     selectors: {
       // '/'
       name: {
-        selector: ["a[href*='settings']:first"],
+        selector: ["a[href*='/users/'][href*='/settings']:first"],
         attr: "href",
         filters: [
           (query: string) => {
@@ -139,34 +140,28 @@ export const SchemaMetadata: Partial<ISiteMetadata> = {
         ],
       },
       uploaded: {
-        selector: ["div.ratio-bar span:has( > i.fa-arrow-up)"],
+        selector: ["div.ratio-bar span:has( > i.fa-arrow-up)", "li.ratio-bar__uploaded a:has( > i.fa-arrow-up)"],
         filters: [{ name: "parseSize" }],
       },
       downloaded: {
-        selector: ["div.ratio-bar span:has( > i.fa-arrow-down)"],
+        selector: ["div.ratio-bar span:has( > i.fa-arrow-down)", "li.ratio-bar__downloaded a:has( > i.fa-arrow-down)"],
         filters: [{ name: "parseSize" }],
       },
+      ratio: {
+        selector: ["div.ratio-bar span:has( > i.fa-sync-alt)", "li.ratio-bar__ratio a:has( > i.fa-sync-alt)"],
+        filters: [{ name: "parseNumber" }],
+      },
       bonus: {
-        selector: ["div.ratio-bar span:has( > i.fa-coins)"],
+        selector: ["div.ratio-bar span:has( > i.fa-coins)", "li.ratio-bar__points a:has( > i.fa-coins)"],
         filters: [{ name: "parseNumber" }],
       },
       seeding: {
-        selector: ["div.ratio-bar span:has( > i.fa-upload)"],
-        filters: [
-          (query: string) => {
-            const queryMatch = query.replace(/[,\n]/g, "").match(/:.+?([\d.]+)/);
-            return queryMatch && queryMatch.length >= 2 ? parseInt(queryMatch[1]) : 0;
-          },
-        ],
+        selector: ["div.ratio-bar span:has( > i.fa-upload)", "li.ratio-bar__seeding a:has( > i.fa-upload)"],
+        filters: [{ name: "parseNumber" }],
       },
       leeching: {
-        selector: ["div.ratio-bar span:has( > i.fa-download)"],
-        filters: [
-          (query: string) => {
-            const queryMatch = query.replace(/[,\n]/g, "").match(/:.+?([\d.]+)/);
-            return queryMatch && queryMatch.length >= 2 ? parseInt(queryMatch[1]) : 0;
-          },
-        ],
+        selector: ["div.ratio-bar span:has( > i.fa-download)", "li.ratio-bar__leeching a:has( > i.fa-download)"],
+        filters: [{ name: "parseNumber" }],
       },
 
       // "/users/$user.name$"
@@ -192,7 +187,7 @@ export const SchemaMetadata: Partial<ISiteMetadata> = {
         filters: [
           (query: string) => {
             query = query.replace(RegExp(joinTimeTrans.join("|")), "").trim();
-            return parseValidTimeString(query);
+            return parseValidTimeString(query, ["MMM dd yyyy, HH:mm:ss", "MMM dd yyyy"]);
           },
         ],
       },
@@ -208,11 +203,17 @@ export default class Unit3D extends PrivateSite {
       site: this.metadata.id,
     };
 
-    if (!this.allowQueryUserInfo || !this.metadata.userInfo?.process) {
+    if (!this.allowQueryUserInfo) {
       flushUserInfo.status = EResultParseStatus.passParse;
       return flushUserInfo;
     }
 
+    // 对 Unit3D，如果定义了 process，则按照 AbstractPrivateSite 的方式处理
+    if (Array.isArray(this.metadata.userInfo?.process)) {
+      return await super.getUserInfoResult(lastUserInfo);
+    }
+
+    // 否则直接使用 Unit3D 的方式获取用户信息
     try {
       let userName: string;
       if (lastUserInfo !== null && lastUserInfo.name) {
@@ -225,6 +226,12 @@ export default class Unit3D extends PrivateSite {
 
       // 导入基本 Details 页面获取到的用户信息
       flushUserInfo = toMerged(flushUserInfo, await this.getUserInfoFromDetailsPage(userName));
+
+      // 如果前面没有获取到用户等级的id，则尝试通过定义的 levelRequirements 来获取
+      if (this.metadata.levelRequirements && flushUserInfo.levelName && typeof flushUserInfo.levelId === "undefined") {
+        flushUserInfo.levelId = this.guessUserLevelId(flushUserInfo as IUserInfo);
+      }
+
       flushUserInfo.status = EResultParseStatus.success;
     } catch (e) {
       flushUserInfo.status = EResultParseStatus.parseError;
@@ -256,18 +263,7 @@ export default class Unit3D extends PrivateSite {
 
     return this.getFieldsData(
       userDetailDocument,
-      [
-        "id",
-        "messageCount",
-        "uploaded",
-        "downloaded",
-        "levelName",
-        "bonus",
-        "joinTime",
-        "seeding",
-        "seedingSize",
-        "leeching",
-      ] as (keyof IUserInfo)[],
+      Object.keys(omit(this.metadata.userInfo?.selectors!, ["name"])),
       this.metadata.userInfo?.selectors!,
     ) as Partial<IUserInfo>;
   }

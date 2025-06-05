@@ -1,10 +1,6 @@
-import { ETorrentStatus, type ISiteMetadata, parseSizeString } from "@ptd/site";
-import {
-  CategoryInclbookmarked,
-  CategoryIncldead,
-  CategorySpstate,
-  SchemaMetadata,
-} from "@ptd/site/schemas/NexusPHP.ts";
+import { ETorrentStatus, type ISiteMetadata } from "../types";
+import { parseSizeString, rot13 } from "../utils";
+import { CategoryInclbookmarked, CategoryIncldead, CategorySpstate, SchemaMetadata } from "../schemas/NexusPHP.ts";
 
 export const siteMetadata: ISiteMetadata = {
   ...SchemaMetadata,
@@ -21,8 +17,8 @@ export const siteMetadata: ISiteMetadata = {
   type: "private",
   schema: "NexusPHP",
 
-  urls: ["aHR0cHM6Ly9wdC5idHNjaG9vbC5jbHViLw=="],
-  formerHosts: [atob("cHQuYnRzY2hvb2wubmV0")],
+  urls: ["ROT13:uggcf://cg.ogfpubby.pyho/"],
+  formerHosts: [rot13("cg.ogfpubby.arg")],
   favicon: "./btschool.ico",
 
   category: [

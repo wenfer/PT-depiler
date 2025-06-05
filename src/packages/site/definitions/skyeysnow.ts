@@ -1,8 +1,9 @@
-import { EResultParseStatus, ETorrentStatus, ISiteMetadata, IUserInfo } from "@ptd/site";
 import Sizzle from "sizzle";
-import PrivateSite from "@ptd/site/schemas/AbstractPrivateSite.ts";
-import { AxiosRequestConfig } from "axios";
 import { toMerged } from "es-toolkit";
+import type { AxiosRequestConfig } from "axios";
+
+import PrivateSite from "../schemas/AbstractPrivateSite.ts";
+import { EResultParseStatus, ETorrentStatus, type ISiteMetadata, type IUserInfo } from "../types";
 
 export const siteMetadata: ISiteMetadata = {
   id: "skyeysnow",
@@ -15,7 +16,7 @@ export const siteMetadata: ISiteMetadata = {
   collaborator: ["栽培者", "MewX", "fzlins", "zhuweitung", "Rhilip"],
   type: "private",
   schema: "Discuz", // 后面再看看需要不需要拆分成 schemas
-  urls: ["aHR0cHM6Ly93d3cuc2t5ZXkyLmNvbS8=", "aHR0cHM6Ly9za3lleXNub3cuY29tLw=="],
+  urls: ["ROT13:uggcf://jjj.fxlrl2.pbz/", "ROT13:uggcf://fxlrlfabj.pbz/"],
   category: [
     {
       name: "分类",

@@ -1,4 +1,4 @@
-import type { ISiteMetadata } from "@ptd/site";
+import { type ISiteMetadata } from "../types";
 import { SchemaMetadata } from "../schemas/NexusPHP";
 
 export const siteMetadata: ISiteMetadata = {
@@ -14,11 +14,11 @@ export const siteMetadata: ISiteMetadata = {
   type: "private",
   schema: "NexusPHP",
 
-  urls: ["aHR0cHM6Ly9wdGNoZGJpdHMuY28v"],
+  urls: ["ROT13:uggcf://cgpuqovgf.pb/"],
 
   category: [
     {
-      name: "类别",
+      name: "类型",
       key: "cat",
       options: [
         { value: 401, name: "Movies电影" },
@@ -32,6 +32,17 @@ export const siteMetadata: ISiteMetadata = {
         { value: 410, name: "Games游戏" },
         { value: 411, name: "Study学习" },
         { value: 409, name: "Others其他" },
+      ],
+      cross: { mode: "append" },
+    },
+    {
+      name: "来源",
+      key: "source",
+      options: [
+        { value: 1, name: "官方" },
+        { value: 7, name: "转载" },
+        { value: 8, name: "复活区" },
+        { value: 9, name: "原创" },
       ],
       cross: { mode: "append" },
     },
@@ -93,6 +104,24 @@ export const siteMetadata: ISiteMetadata = {
       cross: { mode: "append" },
     },
     {
+      name: "处理",
+      key: "processing",
+      options: [
+        { value: 1, name: "3D" },
+        { value: 3, name: "美剧" },
+        { value: 4, name: "日剧" },
+        { value: 5, name: "港剧" },
+        { value: 6, name: "韩剧" },
+        { value: 7, name: "英剧" },
+        { value: 8, name: "国剧" },
+        { value: 9, name: "台剧" },
+        { value: 10, name: "新剧" },
+        { value: 11, name: "马剧" },
+        { value: 13, name: "合集" },
+      ],
+      cross: { mode: "brackets" },
+    },
+    {
       name: "制作组",
       key: "team",
       options: [
@@ -127,7 +156,7 @@ export const siteMetadata: ISiteMetadata = {
       ratio: 2.0,
       seedingBonus: 80000,
       privilege:
-        "可以查看NFO文档；可以请求续种； 可以查看排行榜；可以查看其它用户的种子历史(如果用户隐私等级未设置为\"强\")； 可以删除自己上传的字幕。"
+        '可以查看NFO文档；可以请求续种； 可以查看排行榜；可以查看其它用户的种子历史(如果用户隐私等级未设置为"强")； 可以删除自己上传的字幕。',
     },
     {
       id: 3,
@@ -145,7 +174,8 @@ export const siteMetadata: ISiteMetadata = {
       downloaded: "800GB",
       ratio: 4.0,
       seedingBonus: 300000,
-      privilege: "可以查看NFO文档；可以查看用户列表；可以请求续种；可以查看排行榜；可以查看其它用户的种子历史(如果用户隐私等级未设置为\"强\")； 可以删除自己上传的字幕。可以在做种/下载/发布的时候选择匿名模式。",
+      privilege:
+        '可以查看NFO文档；可以查看用户列表；可以请求续种；可以查看排行榜；可以查看其它用户的种子历史(如果用户隐私等级未设置为"强")； 可以删除自己上传的字幕。可以在做种/下载/发布的时候选择匿名模式。',
     },
     {
       id: 5,

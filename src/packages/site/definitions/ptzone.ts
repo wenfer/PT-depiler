@@ -1,13 +1,12 @@
-import type { ISiteMetadata } from "@ptd/site";
+import type { ISiteMetadata } from "../types";
 import { SchemaMetadata } from "../schemas/NexusPHP";
 
 export const siteMetadata: ISiteMetadata = {
   ...SchemaMetadata,
 
   version: 1,
-  id: "PTzone",
+  id: "ptzone",
   name: "PTzone",
-  aka: ["PTzone"],
   description: "分享地带！",
   tags: ["影视", "综合"],
   timezoneOffset: "+0800",
@@ -17,7 +16,7 @@ export const siteMetadata: ISiteMetadata = {
   type: "private",
   schema: "NexusPHP",
 
-  urls: ["aHR0cHM6Ly9wdHpvbmUueHl6Ly8="],
+  urls: ["ROT13:uggcf://cgmbar.klm/"],
   favicon: "./ptzone.ico",
 
   category: [
@@ -36,7 +35,7 @@ export const siteMetadata: ISiteMetadata = {
         { value: 410, name: "Software(软件)" },
         { value: 411, name: "Games(游戏)" },
         { value: 409, name: "Others(其它)" },
-        ],
+      ],
       cross: { mode: "append" },
     },
     {
@@ -53,7 +52,7 @@ export const siteMetadata: ISiteMetadata = {
         { value: 8, name: "CD" },
         { value: 9, name: "Track" },
         { value: 10, name: "UHD" },
-       ],
+      ],
       cross: { mode: "append" },
     },
     {
@@ -131,7 +130,7 @@ export const siteMetadata: ISiteMetadata = {
       ratio: 1.05,
       seedingBonus: 40000,
       privilege:
-        "首次升级赠送邀请1枚；可以查看NFO文档；可以请求续种； 可以查看排行榜；可以查看其它用户的种子历史(如果用户隐私等级未设置为\"强\")； 可以删除自己上传的字幕。"
+        '首次升级赠送邀请1枚；可以查看NFO文档；可以请求续种； 可以查看排行榜；可以查看其它用户的种子历史(如果用户隐私等级未设置为"强")； 可以删除自己上传的字幕。',
     },
     {
       id: 3,
@@ -149,7 +148,8 @@ export const siteMetadata: ISiteMetadata = {
       downloaded: "300GB",
       ratio: 2.05,
       seedingBonus: 150000,
-      privilege: "首次升级赠送邀请2枚；可以查看NFO文档；可以查看用户列表；可以请求续种；可以查看排行榜；可以查看其它用户的种子历史(如果用户隐私等级未设置为\"强\")； 可以删除自己上传的字幕。可以在做种/下载/发布的时候选择匿名模式。",
+      privilege:
+        '首次升级赠送邀请2枚；可以查看NFO文档；可以查看用户列表；可以请求续种；可以查看排行榜；可以查看其它用户的种子历史(如果用户隐私等级未设置为"强")； 可以删除自己上传的字幕。可以在做种/下载/发布的时候选择匿名模式。',
     },
     {
       id: 5,

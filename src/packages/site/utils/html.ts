@@ -1,4 +1,4 @@
-import { TSiteFullUrl } from "../types";
+import type { TSiteFullUrl, TSiteHost } from "../types";
 
 /**
  * cloudflare Email 解码方法，来自 https://usamaejaz.com/cloudflare-email-decoding/
@@ -25,6 +25,37 @@ export function createDocument(str: string, type: DOMParserSupportedType = "text
   return new DOMParser().parseFromString(str, type);
 }
 
+const inputChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split("");
+const outputChars = "NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm".split("");
+
+// 创建映射表，使用 Record 类型明确键和值的类型
+const lookupTable: Record<string, string> = inputChars.reduce(
+  (map, char, index) => ({ ...map, [char]: outputChars[index] }),
+  {} as Record<string, string>,
+);
+
+/**
+ * 对输入字符串执行 ROT13 加密/解密
+ * @param input 待处理的字符串
+ * @returns 处理后的字符串
+ */
+export function rot13(input: string): string {
+  return input
+    .split("")
+    .map((char) => lookupTable[char] || char)
+    .join("");
+}
+
 export function restoreSecureLink(url: string): TSiteFullUrl {
-  return (url.startsWith("aHR0c") ? atob(url) : url) as TSiteFullUrl;
+  return (url.startsWith("ROT13:") ? rot13(url.slice(6)) : url) as TSiteFullUrl;
+}
+
+export function getHostFromUrl(url: string): TSiteHost {
+  let host = url;
+  try {
+    const urlObj = new URL(url);
+    host = urlObj.host;
+  } catch (e) {}
+
+  return host;
 }

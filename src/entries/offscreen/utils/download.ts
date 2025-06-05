@@ -157,6 +157,13 @@ onMessage("downloadTorrentToLocalFile", async ({ data: { torrent, localDownloadM
 onMessage("downloadTorrentToDownloader", async ({ data: { torrent, downloaderId, addTorrentOptions } }) => {
   logger({ msg: "downloadTorrentToDownloader", data: { torrent, downloaderId, addTorrentOptions } });
 
+  addTorrentOptions.localDownload ??= true; // 默认开启本地中转选项（如果传递进来的没有 localDownload 值的话）
+
+  const configStoreRaw = (await sendMessage("getExtStorage", "config")) as IConfigPiniaStorageSchema;
+  if (!(configStoreRaw?.download?.allowDirectSendToClient ?? false) && !addTorrentOptions.localDownload) {
+    addTorrentOptions.localDownload = true; // 如果不允许直接发送到下载器，则将本地中转选项强行设置为 true
+  }
+
   const downloadHistory = buildDownloadHistory(torrent, downloaderId, addTorrentOptions);
   const downloadId = await setDownloadHistory(downloadHistory);
 
@@ -173,16 +180,23 @@ onMessage("downloadTorrentToDownloader", async ({ data: { torrent, downloaderId,
   const downloaderConfig = await getDownloaderConfig(downloaderId);
   if (downloaderConfig.id && downloaderConfig.enabled) {
     const downloaderInstance = await getDownloader(downloaderConfig);
-    if (addTorrentOptions.localDownload !== false) {
+    if (addTorrentOptions.localDownload) {
       addTorrentOptions.localDownloadOption = downloadRequestConfig;
     }
 
     await patchDownloadHistory(downloadId, { downloadStatus: "downloading" });
     try {
       logger({ msg: "downloadTorrentToDownloader", data: { torrent, downloadRequestConfig, addTorrentOptions } });
-      await downloaderInstance.addTorrent(downloadRequestConfig.url!, addTorrentOptions);
-      await patchDownloadHistory(downloadId, { downloadStatus: "completed" });
+      const addStatus = await downloaderInstance.addTorrent(downloadRequestConfig.url!, addTorrentOptions);
+      if (!addStatus) {
+        logger({ msg: "Failed to add torrent to downloader", data: { torrent, downloaderId, addTorrentOptions } });
+        await patchDownloadHistory(downloadId, { downloadStatus: "failed" });
+      } else {
+        logger({ msg: "Successfully added torrent to downloader", data: { torrent, downloaderId, addTorrentOptions } });
+        await patchDownloadHistory(downloadId, { downloadStatus: "completed" });
+      }
     } catch (e) {
+      logger({ msg: "Error adding torrent to downloader", data: { torrent, downloaderId, addTorrentOptions } });
       await patchDownloadHistory(downloadId, { downloadStatus: "failed" });
     }
   } else {

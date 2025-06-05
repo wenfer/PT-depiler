@@ -3,7 +3,8 @@ import { cloneDeep } from "es-toolkit";
 export * from "./types";
 export * from "./utils";
 
-import type { ISiteMetadata, ISiteUserConfig, TSiteID, TSiteFullUrl } from "./types";
+import { getHostFromUrl, restoreSecureLink } from "./utils/html.ts";
+import type { ISiteMetadata, ISiteUserConfig, TSiteID } from "./types";
 import type BittorrentSite from "./schemas/AbstractBittorrentSite";
 import type PrivateSite from "./schemas/AbstractPrivateSite";
 
@@ -43,10 +44,6 @@ async function getDefinitionModule(definition: string): Promise<definitionEntity
   return module;
 }
 
-function restoreSecureLink(url: string): TSiteFullUrl {
-  return (url.startsWith("aHR0c") ? atob(url) : url) as TSiteFullUrl;
-}
-
 export async function getDefinedSiteMetadata(definition: string): Promise<ISiteMetadata> {
   const { siteMetadata: definedSiteMetadata } = await getDefinitionModule(definition);
 
@@ -57,7 +54,7 @@ export async function getDefinedSiteMetadata(definition: string): Promise<ISiteM
 
   // 补全一些可以缺失字段
   siteMetadata.tags ??= [];
-  siteMetadata.host ??= new URL(siteMetadata.urls[0]).host;
+  siteMetadata.host ??= getHostFromUrl(siteMetadata.urls[0]);
   siteMetadata.timezoneOffset ??= siteMetadata.schema === "NexusPHP" ? "+0800" : "+0000";
 
   return siteMetadata;

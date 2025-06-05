@@ -1,9 +1,10 @@
-import { type ILevelRequirement, ISearchInput, ISiteMetadata, ITorrent, ITorrentTag } from "@ptd/site";
-import PrivateSite from "@ptd/site/schemas/AbstractPrivateSite.ts";
 import type { AxiosRequestConfig, AxiosResponse } from "axios";
 import { set } from "es-toolkit/compat";
 import { build as buildDouban } from "@ptd/social/entity/douban.ts";
 import { build as buildImdb } from "@ptd/social/entity/imdb.ts";
+
+import { type ILevelRequirement, ISearchInput, ISiteMetadata, ITorrent, ITorrentTag } from "../types";
+import PrivateSite from "../schemas/AbstractPrivateSite.ts";
 
 const siteCategory: { value: string; name: string; type: "normal" | "adult" }[] = [
   { value: "401", name: "電影/SD", type: "normal" },
@@ -137,10 +138,10 @@ export const siteMetadata: ISiteMetadata = {
   schema: "mTorrent",
 
   urls: [
-    "aHR0cHM6Ly9rcC5tLXRlYW0uY2Mv",
-    "aHR0cHM6Ly96cC5tLXRlYW0uaW8v",
-    "aHR0cHM6Ly94cC5tLXRlYW0uY2Mv",
-    "aHR0cHM6Ly9hcC5tLXRlYW0uY2Mv",
+    "ROT13:uggcf://xc.z-grnz.pp/",
+    "ROT13:uggcf://mc.z-grnz.vb/",
+    "ROT13:uggcf://kc.z-grnz.pp/",
+    "ROT13:uggcf://nc.z-grnz.pp/",
   ],
   formerHosts: ["xp.m-team.io", "pt.m-team.cc", "tp.m-team.cc"],
 
@@ -362,6 +363,12 @@ export const siteMetadata: ISiteMetadata = {
         requestConfig: { url: "/api/tracker/mybonus", method: "POST", responseType: "json" },
         selectors: {
           bonusPerHour: { selector: "data.formulaParams.finalBs", filters: [{ name: "parseNumber" }] },
+        },
+      },
+      {
+        requestConfig: { url: "/api/msg/notify/statistic", method: "POST", responseType: "json" },
+        selectors: {
+          messageCount: { selector: "data.unMake", filters: [{ name: "parseNumber" }] },
         },
       },
     ],

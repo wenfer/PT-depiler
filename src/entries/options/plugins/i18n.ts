@@ -12,7 +12,7 @@ interface ILangMetaData {
 }
 
 /**
- * 由于 Vue-i18n v9 在 CSP 环境中无法进行编译操作，所以所有语言文件需要在此处预注册，
+ * 由于 Vue-i18n v11 在 CSP 环境中无法进行编译操作，所以所有语言文件需要在此处预注册，
  * 不然不会在插件页面显示，也不能实现像 v1.x 中的”临时添加新语言功能“
  */
 export const definedLangMetaData: readonly ILangMetaData[] = [
@@ -29,6 +29,7 @@ export const definedLangMetaData: readonly ILangMetaData[] = [
 ] as const;
 
 export const i18nInstance = createI18n({
+  legacy: false, // you must set `false`, to use Composition API
   locale: "zh_CN",
   fallbackLocale: "en",
   messages: {

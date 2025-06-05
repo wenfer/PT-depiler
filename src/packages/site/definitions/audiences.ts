@@ -1,13 +1,13 @@
 import Sizzle from "sizzle";
 import { mergeWith } from "es-toolkit";
-import { ETorrentStatus, ISiteMetadata, IUserInfo } from "@ptd/site";
+import { ETorrentStatus, type ISiteMetadata, type IUserInfo } from "../types";
 import NexusPHP, {
   CategoryInclbookmarked,
   CategoryIncldead,
   CategorySpstate,
   SchemaMetadata,
-} from "@ptd/site/schemas/NexusPHP.ts";
-import { createDocument, parseSizeString, tryToNumber } from "../utils";
+} from "../schemas/NexusPHP.ts";
+import { createDocument, parseSizeString, rot13, tryToNumber } from "../utils";
 
 export const siteMetadata: ISiteMetadata = {
   ...SchemaMetadata,
@@ -25,7 +25,7 @@ export const siteMetadata: ISiteMetadata = {
   type: "private",
   schema: "NexusPHP",
 
-  urls: ["aHR0cHM6Ly9hdWRpZW5jZXMubWUv"],
+  urls: ["ROT13:uggcf://nhqvraprf.zr/"],
 
   category: [
     {
@@ -256,7 +256,7 @@ export default class Audiences extends NexusPHP {
       url: "/getusertorrentlistajax.php",
       params: { userid: userId, type },
       headers: {
-        Referer: atob("aHR0cHM6Ly9hdWRpZW5jZXMubWUvdXNlcmRldGFpbHMucGhw"), // 不提供 Referer，无法获取到数据
+        Referer: rot13("uggcf://nhqvraprf.zr/hfreqrgnvyf.cuc"), // 不提供 Referer，无法获取到数据
       },
     });
     return data || null;

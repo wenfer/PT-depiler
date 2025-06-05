@@ -1,13 +1,14 @@
-import {
-  createDocument,
-  ETorrentStatus,
-  IAdvancedSearchRequestConfig,
-  ISiteMetadata,
-  IUserInfo,
-  TSelectSearchCategoryValue,
-} from "@ptd/site";
-import NexusPHP, { CategoryIncldead, CategorySpstate, SchemaMetadata } from "@ptd/site/schemas/NexusPHP.ts";
 import { set } from "es-toolkit/compat";
+
+import {
+  ETorrentStatus,
+  type IAdvancedSearchRequestConfig,
+  type ISiteMetadata,
+  type IUserInfo,
+  type TSelectSearchCategoryValue,
+} from "../types";
+import { createDocument } from "../utils";
+import NexusPHP, { CategoryIncldead, CategorySpstate, SchemaMetadata } from "../schemas/NexusPHP.ts";
 
 export const siteMetadata: ISiteMetadata = {
   ...SchemaMetadata,
@@ -24,7 +25,7 @@ export const siteMetadata: ISiteMetadata = {
   type: "private",
   schema: "NexusPHP",
 
-  urls: ["aHR0cHM6Ly9zcHJpbmdzdW5kYXkubmV0Lw=="],
+  urls: ["ROT13:uggcf://fcevatfhaqnl.arg/"],
   category: [
     {
       name: "类型",
@@ -315,7 +316,8 @@ export const siteMetadata: ISiteMetadata = {
         filters: [{ name: "parseNumber" }],
       },
       messageCount: {
-        selector: ["a[href*='messages.php'][style*='background: red']"],
+        ...SchemaMetadata.userInfo!.selectors!.messageCount,
+        selector: ["a[href*='messages.php'] > b[style*='background: darkorange']"],
       },
     },
   },

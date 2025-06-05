@@ -24,7 +24,6 @@ import {
 } from "../utils";
 import axios, { type AxiosError, type AxiosRequestConfig, type AxiosResponse } from "axios";
 import Sizzle from "sizzle";
-import urlJoin from "url-join";
 import { get, isEmpty, set } from "es-toolkit/compat";
 import { chunk, pascalCase, pick, toMerged, union } from "es-toolkit";
 import { setupCache } from "axios-cache-interceptor";
@@ -246,7 +245,9 @@ export default class BittorrentSite {
         const urlHelper = new URL(baseUrl);
         url = `${urlHelper.protocol}:${uri}`;
       } else if (uri.slice(0, 4) !== "http") {
-        url = urlJoin(baseUrl, uri.replace(/^\./, ""));
+        // 基于请求地址，处理 ./xxx, xxxx, /xxxx 等相对路径
+        const requestUrl = axios.getUri(requestConfig);
+        url = new URL(uri, requestUrl).toString();
       }
     }
 
@@ -261,7 +262,7 @@ export default class BittorrentSite {
    * @protected
    */
   protected getFieldsData<
-    G extends "search" | "detail" | "userInfo",
+    G extends "search" | "list" | "detail" | "userInfo",
     S extends Required<Required<ISiteMetadata>[G]>["selectors"],
   >(element: Element | object, fields: (keyof S)[], selectors: S): { [key in keyof S]?: any } {
     const ret: { [key in keyof S]?: any } = {};
@@ -302,7 +303,8 @@ export default class BittorrentSite {
             } else if (elementQuery.attr) {
               query = another.getAttribute(elementQuery.attr) ?? query;
             } else {
-              query = another.innerText.replace(/\n/gi, " ") || query;
+              // 优先使用 innerText，如果没有，则使用 textContent
+              query = (another.innerText ?? another.textContent).replace(/\n/gi, " ") || query;
             }
           }
         } else {
@@ -363,7 +365,7 @@ export default class BittorrentSite {
   /**
    * 如何解析 JSON 或者 Document，获得种子详情列表
    */
-  protected async transformSearchPage(doc: Document | object | any, searchConfig: ISearchInput): Promise<ITorrent[]> {
+  public async transformSearchPage(doc: Document | object | any, searchConfig: ISearchInput): Promise<ITorrent[]> {
     const { searchEntry, requestConfig } = searchConfig;
     if (!searchEntry!.selectors?.rows) {
       throw Error("列表选择器未定义");
@@ -481,7 +483,11 @@ export default class BittorrentSite {
     torrent.comments = tryToNumber(torrent.comments);
     torrent.category = tryToNumber(torrent.category);
     torrent.status = tryToNumber(torrent.status);
-    torrent.time = parseTimeWithZone(torrent.time as unknown as string, this.metadata.timezoneOffset || "+0000");
+
+    // 仅当设置了时区偏移时，才进行转换
+    if (this.metadata.timezoneOffset) {
+      torrent.time = parseTimeWithZone(torrent.time as unknown as string, this.metadata.timezoneOffset);
+    }
 
     // 在此基础上，不同 schema 可以复写处理过程
     torrent = this.fixParsedTorrent(torrent as ITorrent, row, searchConfig);

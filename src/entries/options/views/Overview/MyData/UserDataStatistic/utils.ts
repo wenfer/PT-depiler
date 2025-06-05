@@ -30,7 +30,7 @@ export async function loadFullData(): Promise<TUserDataStatistic> {
     const siteId = key as TSiteID;
     const thisSiteDateRange = Object.keys(perSiteUserInfoHistory);
     const thisSiteMinDate = minDateFn(thisSiteDateRange);
-    const thisSiteMaxDate = maxDateFn([...thisSiteDateRange, maxDate]); // 确保包含全局最大日期
+    const thisSiteMaxDate = maxDateFn(thisSiteDateRange);
     const thisSiteDateRangeInInterval = eachDayOfInterval({ start: thisSiteMinDate, end: thisSiteMaxDate }).map((x) =>
       formatDate(x, "yyyy-MM-dd"),
     );
@@ -56,8 +56,6 @@ export async function loadFullData(): Promise<TUserDataStatistic> {
 export function setSubDate(days: number) {
   const today = new Date();
   const subDay = subDays(today, days);
-
-  console.log(today, subDay);
 
   return eachDayOfInterval({ start: subDay, end: today }).map((x) => formatDate(x, "yyyy-MM-dd"));
 }
