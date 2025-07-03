@@ -1,0 +1,7 @@
+/**
+ * 在此处的注册的css会被content-script注入到启用的页面中。
+ */
+
+/*noinspection CssUnknownTarget*/
+@import "@/shared/common.css";
+

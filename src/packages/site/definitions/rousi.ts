@@ -16,7 +16,7 @@ export const siteMetadata: ISiteMetadata = {
   type: "private",
   schema: "NexusPHP",
 
-  urls: ["ROT13:uggcf://ebhfv.mvc/"],
+  urls: ["uggcf://ebhfv.mvc/"],
   favicon: "./rousi.ico",
 
   category: [
@@ -62,6 +62,10 @@ export const siteMetadata: ISiteMetadata = {
   ],
   search: {
     ...SchemaMetadata.search,
+  },
+  searchEntry: {
+    area_torrents: { name: "综合", requestConfig: { url: "/torrents.php" } },
+    area_special: { name: "9kg", enabled: false, requestConfig: { url: "/special.php" } },
   },
   levelRequirements: [
     {

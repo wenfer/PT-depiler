@@ -16,8 +16,8 @@ export const siteMetadata: ISiteMetadata = {
   type: "private",
   schema: "NexusPHP",
 
-  urls: ["ROT13:uggcf://cgmbar.klm/"],
-  favicon: "./ptzone.ico",
+  urls: ["uggcf://cgmbar.klm/"],
+  favicon: "./_default_nexusphp.png",
 
   category: [
     {

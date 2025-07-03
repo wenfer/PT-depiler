@@ -16,7 +16,7 @@ export const siteMetadata: ISiteMetadata = {
   collaborator: ["栽培者", "MewX", "fzlins", "zhuweitung", "Rhilip"],
   type: "private",
   schema: "Discuz", // 后面再看看需要不需要拆分成 schemas
-  urls: ["ROT13:uggcf://jjj.fxlrl2.pbz/", "ROT13:uggcf://fxlrlfabj.pbz/"],
+  urls: ["uggcf://jjj.fxlrl2.pbz/", "uggcf://fxlrlfabj.pbz/"],
   category: [
     {
       name: "分类",
@@ -125,7 +125,7 @@ export const siteMetadata: ISiteMetadata = {
     },
   },
   userInfo: {
-    pickLast: ["id", "name", "joinTime"],
+    pickLast: ["id", "name"],
     process: [
       {
         requestConfig: { url: "/" },
@@ -164,7 +164,10 @@ export const siteMetadata: ISiteMetadata = {
           },
           joinTime: {
             selector: "#pbbs > li:contains('注册时间')",
-            filters: [(query: string) => query.replace("注册时间", "").trim(), { name: "parseTime" }],
+            filters: [
+              (query: string) => query.replace("注册时间", "").trim(),
+              { name: "parseTime", args: ["yyyy-MM-dd HH:mm"] },
+            ],
           },
         },
       },

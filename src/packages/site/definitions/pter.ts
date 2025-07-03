@@ -203,6 +203,12 @@ export const siteMetadata: ISiteMetadata = {
     },
   },
 
+  list: [
+    {
+      urlPattern: ["/torrents.php", "/music.php", "/officialgroup.php"],
+    },
+  ],
+
   userInfo: {
     ...SchemaMetadata.userInfo!,
     selectors: {
@@ -213,7 +219,7 @@ export const siteMetadata: ISiteMetadata = {
         ],
         filters: [{ name: "parseNumber" }],
       },
-      // 从顶端用户栏获取做种数量，这样就可以避免对 /getusertorrentlist.php 页面的请求
+      // 从顶端用户栏获取做种数，这样就可以避免对 /getusertorrentlist.php 页面的请求
       seeding: {
         selector: ["#info_block a[href*='getusertorrentlist.php'][href*='type=seeding']"],
         filters: [{ name: "parseNumber" }],
@@ -223,6 +229,10 @@ export const siteMetadata: ISiteMetadata = {
           "td.rowhead:contains('做种大小') + td, td.rowhead:contains('Seeding Size') + td, td.rowhead:contains('做種大小') + td",
         ],
         filters: [{ name: "parseSize" }],
+      },
+      messageCount: {
+        ...SchemaMetadata.userInfo!.selectors!.messageCount,
+        selector: ["div[style*='background: red'] a[href*='messages.php']"],
       },
     },
   },

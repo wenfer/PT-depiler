@@ -108,7 +108,7 @@ export function levelRequirementUnMet(
 
   // 比较 totalTraffic, downloaded, trueDownloaded, uploaded, trueUploaded, seedingSize 等体积类字段需求
   for (const currentSizeElement of intersection(
-    ["totalTraffic", "downloaded", "trueDownloaded", "uploaded", "trueUploaded", "seedingSize"],
+    ["totalTraffic", "downloaded", "trueDownloaded", "uploaded", "trueUploaded", "seedingSize", "specialSeedingSize"],
     levelRequirementKeys,
   )) {
     let currentSizeRequirement = levelRequirement[currentSizeElement];
@@ -224,7 +224,7 @@ export function levelRequirementUnMet(
 
   // 比较 bonus, bonusPerHour, seedingBonus, uploads, leeching, snatches, posts 等应该大于的字段
   for (const currentGtElement of intersection(
-    ["bonus", "bonusPerHour", "seedingBonus", "uploads", "leeching", "snatches", "posts"],
+    ["bonus", "bonusPerHour", "seedingBonus", "uploads", "leeching", "snatches", "posts", "perfectFlacs", "groups"],
     levelRequirementKeys,
   )) {
     let currentGtRequirement = levelRequirement[currentGtElement];
@@ -325,7 +325,7 @@ export function guessUserLevelId(userInfo: IUserInfo, levelRequirements: ILevelR
   }
 
   // 如果还是没有找到，说明应当是 user 类别的某一个，则尝试通过 userInfo 和 levelRequirements 的具体项匹配
-  let testLevel = -1;
+  let testLevel = getMaxUserLevelId(levelRequirements);
   for (const levelIndex in levelRequirements ?? []) {
     const testLevelRequirement = levelRequirements[levelIndex];
     if (!isLevelRequirementMet(userInfo, testLevelRequirement)) {

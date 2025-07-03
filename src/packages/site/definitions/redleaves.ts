@@ -1,4 +1,4 @@
-import type { IAdvancedSearchRequestConfig, ISiteMetadata } from "../types";
+import type { ISiteMetadata } from "../types";
 import { CategoryInclbookmarked, CategoryIncldead, CategorySpstate, SchemaMetadata } from "../schemas/NexusPHP.ts";
 
 export const siteMetadata: ISiteMetadata = {
@@ -15,24 +15,22 @@ export const siteMetadata: ISiteMetadata = {
   type: "private",
   schema: "NexusPHP",
 
-  urls: ["ROT13:uggcf://yrnirf.erq/"],
+  urls: ["uggcf://yrnirf.erq/"],
 
   collaborator: ["CosmoGao", "tedzhu", "hui-shao"],
+
+  // refs: https://t.me/Ptfxq/896
+  isDead: true,
 
   category: [
     {
       name: "搜索入口",
-      key: "url",
+      key: "#url",
       options: [
         { name: "影视区", value: "/torrents.php" },
         { name: "有声区", value: "/special.php" },
         { name: "游戏区", value: "/games.php" },
       ],
-      cross: false,
-      generateRequestConfig: (selectedCategories) => {
-        const ret = { requestConfig: { url: selectedCategories, params: {} } };
-        return ret as IAdvancedSearchRequestConfig;
-      },
     },
     {
       name: "类别（影视区）",

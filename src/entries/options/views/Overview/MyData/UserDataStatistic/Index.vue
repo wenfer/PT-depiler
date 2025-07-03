@@ -25,7 +25,6 @@ import { formatSize, formatDate } from "@/options/utils.ts";
 import { IStoredUserInfo } from "@/shared/types.ts";
 
 import { useRuntimeStore } from "@/options/stores/runtime.ts";
-import { useMetadataStore } from "@/options/stores/metadata.ts";
 import { useConfigStore } from "@/options/stores/config.ts";
 import { allAddedSiteMetadata, loadAllAddedSiteMetadata } from "@/options/views/Overview/MyData/utils.ts";
 
@@ -34,7 +33,8 @@ import SiteName from "@/options/components/SiteName.vue";
 import NavButton from "@/options/components/NavButton.vue";
 import CheckSwitchButton from "@/options/components/CheckSwitchButton.vue";
 
-import { loadFullData, setSubDate, type TUserDataStatistic } from "./utils.ts";
+import { type IUserDataStatistic, loadFullData, setSubDate } from "./utils.ts";
+import { NO_IMAGE } from "@ptd/site";
 
 type EChartsLineChartOption = ComposeOption<
   TitleComponentOption | TooltipComponentOption | LegendComponentOption | GridComponentOption | LineSeriesOption
@@ -55,20 +55,24 @@ const { width: containerWidth } = useElementSize(chartContainerRef);
 const perChartHeight = computed(() => 400);
 
 const allowEditName = ref<boolean>(false);
-const rawDataRef = ref<TUserDataStatistic>({});
 
-const allDateRanges = computed(() => Object.keys(rawDataRef.value));
-const allSites = computed<string[]>(() =>
-  uniq(flatten(Object.values(mapValues(rawDataRef.value, (x) => Object.keys(x))))),
-);
-const availableSites = computed(() =>
-  uniq(flatten(Object.values(mapValues(pick(rawDataRef.value, selectedDateRanges.value), (x) => Object.keys(x))))),
-);
+const rawDataRef = ref<IUserDataStatistic>({ siteDateRange: {}, dailyUserInfo: {}, incrementalData: {} });
+
+const allDateRanges = computed(() => Object.keys(rawDataRef.value.dailyUserInfo));
+const allSites = computed<string[]>(() => Object.keys(rawDataRef.value.siteDateRange));
 
 const selectedDateRanges = shallowRef<string[]>([]);
+const selectedDateRangeRawData = computed<IUserDataStatistic["dailyUserInfo"]>(() =>
+  pick(rawDataRef.value.dailyUserInfo, selectedDateRanges.value),
+);
+
+const availableSites = computed(() =>
+  uniq(flatten(Object.values(mapValues(selectedDateRangeRawData.value, (x) => Object.keys(x))))),
+);
+
 const selectedSites = ref<string[]>([]);
-const selectedDataComputed = computed<TUserDataStatistic>(() =>
-  mapValues(pick(rawDataRef.value, selectedDateRanges.value), (x) => pick(x, selectedSites.value)),
+const selectedDataComputed = computed<IUserDataStatistic["dailyUserInfo"]>(() =>
+  mapValues(selectedDateRangeRawData.value, (x) => pick(x, selectedSites.value)),
 );
 
 function getTotalDataByField(field: keyof IStoredUserInfo) {
@@ -141,26 +145,33 @@ const totalSiteSeedingInfoChartOptions = computed(() => {
   return {
     title: {
       text: `[${configStore.userName}] ${t("UserDataStatistic.chart.totalSiteSeeding")}`,
-      subtext: `做种体积: ${formatSize(seedingSize.at(-1)!)}, 数量: ${(seeding.at(-1) ?? 0).toFixed(2)}`,
+      subtext: `做种量: ${formatSize(seedingSize.at(-1)!)}, 数量: ${(seeding.at(-1) ?? 0).toFixed(2)}`,
       left: "center", // 设置标题居中
     },
     tooltip: {
       trigger: "axis",
       formatter: createTotalInfoTooltipFormatter(["size", "int"]),
     },
-    legend: { data: ["做种体积", "做种数"], bottom: 10, orient: "horizontal" },
+    legend: { data: ["做种量", "做种数"], bottom: 10, orient: "horizontal" },
     grid: { left: "3%", right: "4%", bottom: "10%", containLabel: true },
     xAxis: { type: "category", boundaryGap: false, data: selectedDateRanges.value }, // 时间轴
     yAxis: [
-      { type: "value", name: "做种体积", position: "left", axisLabel: { formatter: formatSize } },
+      { type: "value", name: "做种量", position: "left", axisLabel: { formatter: formatSize } },
       { type: "value", name: "做种数", position: "right", axisLabel: { formatter: (value) => value.toFixed(0) } },
     ],
     series: [
-      { name: "做种体积", type: "line", smooth: true, data: seedingSize, yAxisIndex: 0 },
+      { name: "做种量", type: "line", smooth: true, data: seedingSize, yAxisIndex: 0 },
       { name: "做种数", type: "line", smooth: true, data: seeding, yAxisIndex: 1 },
     ],
   } as EChartsLineChartOption;
 });
+
+// Echart 不支持在 tooltip 中直接获取鼠标悬停的系列索引，所以我们需要通过 mousemove 事件手动记录
+const lastHoveredSeriesIndex = ref<number>(-1);
+
+function updateLastHoveredSeriesIndex(data: any) {
+  lastHoveredSeriesIndex.value = data?.seriesIndex ?? -1; // 获取鼠标悬停的系列索引
+}
 
 const createPerSiteChartOptionsFn = (
   field: keyof IStoredUserInfo,
@@ -171,13 +182,10 @@ const createPerSiteChartOptionsFn = (
     const series = selectedSites.value.map((site) => {
       let data;
       if (incr) {
+        // 使用预计算的增量数据，大幅提升性能
         data = selectedDateRanges.value.map((date) => {
-          const currentData = selectedDataComputed.value[date]?.[site]?.[field] ?? 0;
-          const previousData =
-            selectedDataComputed.value[selectedDateRanges.value[selectedDateRanges.value.indexOf(date) - 1]]?.[site]?.[
-              field
-            ] ?? 0;
-          return currentData - previousData;
+          const incrementalValue = rawDataRef.value.incrementalData[site]?.[date]?.[field];
+          return incrementalValue ?? 0;
         });
       } else {
         data = selectedDateRanges.value.map((date) => selectedDataComputed.value[date]?.[site]?.[field] ?? 0);
@@ -190,17 +198,6 @@ const createPerSiteChartOptionsFn = (
           focus: "series",
         },
         stack: "site",
-        tooltip: {
-          formatter: (params: any) => {
-            const siteName = allAddedSiteMetadata[site]?.siteName ?? site;
-            const siteFavicon = allAddedSiteMetadata[site]?.faviconSrc ?? "";
-
-            return (
-              `<div class="d-inline-flex align-center"><img src="${siteFavicon}" class="mr-1" style="width:16px; height: 16px; " alt="${siteName}">${siteName}</div>` +
-              `<div style='color: ${params.color}'>${params.marker}${params.name}: ${formatDict[format](params.value)}</div>`
-            );
-          },
-        },
         data,
       };
     });
@@ -212,7 +209,47 @@ const createPerSiteChartOptionsFn = (
         text: `[${configStore.userName}] ${t("UserDataStatistic.chart.perSiteK" + field + (incr ? "Incr" : ""))}`,
         left: "center",
       },
-      tooltip: { trigger: "item" },
+      tooltip: {
+        trigger: "axis",
+        axisPointer: {
+          type: "shadow",
+        },
+        formatter: (params: any[]) => {
+          let ret = "";
+          const date = params?.[0]?.name ?? "No Date"; // 从params 中拿到日期
+          ret += `<span class="font-weight-bold">${date}</span><br>`;
+
+          const totalCount = params.reduce((acc, cur) => acc + (Number(cur.data) || 0), 0); // 算出总和
+          if (totalCount > 0) {
+            ret += '<table style="width: 100%;">';
+            ret += `<tr class="font-weight-bold" style="border-bottom: 1pt solid black;"><td class="pr-3">总和</td><td class="pr-3 text-right">${formatDict[format](totalCount)}</td><td class="text-right">100%</td></tr>`;
+
+            const sortedParams = params.sort((a, b) => b.data - a.data);
+
+            for (const data of sortedParams) {
+              const dataValue = Number(data.data) || 0;
+
+              if (dataValue === 0) continue; // 跳过无数据的站点
+              const site = data.seriesName;
+              const siteName = allAddedSiteMetadata[site]?.siteName ?? site;
+              const siteFavicon = allAddedSiteMetadata[site]?.faviconSrc ?? NO_IMAGE;
+              const precentValue = ((dataValue / totalCount) * 100).toFixed(2);
+              const colorStyle = lastHoveredSeriesIndex.value === data.seriesIndex ? `color: ${data.color};` : ""; // 是否高亮此行
+
+              ret += `<tr style='${colorStyle}'>
+<td class="pr-3"><div class="d-inline-flex align-center"><img src="${siteFavicon}" class="mr-1" style="width:16px; height: 16px; " alt="${siteName}">${siteName}</div></td>
+<td class="pr-3 text-right">${formatDict[format](data.value)}</td>
+<td class="text-right">${precentValue}%</td>
+</tr>`;
+            }
+            ret += "</table>";
+          } else {
+            ret += `无数据`;
+          }
+
+          return ret;
+        },
+      },
       legend: {
         data: seriesTotal.sort((a, b) => b.value - a.value).map((x) => x.name),
         bottom: 10,
@@ -221,7 +258,7 @@ const createPerSiteChartOptionsFn = (
         formatter: (site) => allAddedSiteMetadata[site].siteName ?? site,
       },
       grid: { left: "3%", right: "4%", bottom: "10%", containLabel: true },
-      xAxis: { type: "category", boundaryGap: false, data: selectedDateRanges.value }, // 时间轴
+      xAxis: { type: "category", boundaryGap: true, data: selectedDateRanges.value }, // 所有柱状图都使用 boundaryGap: true
       yAxis: [{ type: "value", name: "数据", axisLabel: { formatter: formatDict[format] } }],
       series,
     } as EChartsBarChartOption;
@@ -243,7 +280,7 @@ onMounted(async () => {
   rawDataRef.value = await loadFullData();
 
   // 加载所有站点的元数据
-  await loadAllAddedSiteMetadata();
+  await loadAllAddedSiteMetadata(Object.keys(rawDataRef.value.siteDateRange));
 
   // 从路由中加载默认参数
   const { days = -1, sites = [] } = route.query ?? {};
@@ -333,7 +370,7 @@ function saveControl() {
           class="chart"
           group="totalSiteSeeding"
         />
-        <!-- 分站点上传、下载、做种、做种体积、积分、时魔数据 -->
+        <!-- 分站点上传、下载、做种、做种量、积分、时魔值数据 -->
         <template v-for="[field, format] in perSiteChartField" :key="field">
           <v-chart
             v-if="
@@ -345,6 +382,7 @@ function saveControl() {
             :style="{ height: `${perChartHeight}px` }"
             autoresize
             class="chart"
+            @mousemove="updateLastHoveredSeriesIndex"
           />
           <v-chart
             v-if="
@@ -356,6 +394,7 @@ function saveControl() {
             :style="{ height: `${perChartHeight}px` }"
             autoresize
             class="chart"
+            @mousemove="updateLastHoveredSeriesIndex"
           />
         </template>
       </v-col>

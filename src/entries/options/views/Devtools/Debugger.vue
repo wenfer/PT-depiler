@@ -35,6 +35,9 @@ function enableLibrary() {
 const selectedSite = ref<TSiteID>("");
 const useCustomerConfig = ref<boolean>(true);
 
+const clearSiteTarget = ref<TSiteID>("all");
+const siteSelectItems = [{ title: "全部", value: "all" }, ...definitionList.map((x) => ({ title: x, value: x }))];
+
 const piniaStoreContent = import.meta.glob<Record<string, Function>>("@/options/stores/*.ts");
 const piniaStoreName: Array<{ title: string; value: string }> = Object.keys(piniaStoreContent).map((x) => ({
   title: x.replace(/^.+\//, "").replace(/\.ts$/, ""),
@@ -111,9 +114,23 @@ const resetItems: resetItem[] = [
   },
   {
     title: "清空站点数据",
-    subTitle: "清空用户所有历史获取的站点数据",
+    subTitle: "清空用户获取的站点数据（包括用户信息历史记录和最近一次用户信息）",
     resetFn: async () => {
-      await sendMessage("setExtStorage", { key: "userInfo", value: {} });
+      const metadataStore = useMetadataStore();
+      if (clearSiteTarget.value === "all") {
+        // 清空所有站点数据
+        metadataStore.lastUserInfo = {};
+        await sendMessage("setExtStorage", { key: "userInfo", value: {} });
+      } else {
+        // 清空指定站点数据
+        if (metadataStore.lastUserInfo[clearSiteTarget.value]) delete metadataStore.lastUserInfo[clearSiteTarget.value];
+        const userInfo = (await sendMessage("getExtStorage", "userInfo")) as Record<string, any>;
+        if (userInfo && userInfo[clearSiteTarget.value]) {
+          delete userInfo[clearSiteTarget.value];
+          await sendMessage("setExtStorage", { key: "userInfo", value: userInfo });
+        }
+      }
+      await metadataStore.$save();
     },
   },
   {
@@ -138,6 +155,9 @@ const resetItems: resetItem[] = [
     title: "清空搜索快照",
     subTitle: "清空所有搜索快照数据",
     resetFn: async () => {
+      const metadataStore = useMetadataStore();
+      metadataStore.snapshots = {};
+      await metadataStore.$save();
       await sendMessage("setExtStorage", { key: "searchResultSnapshot", value: {} });
     },
   },
@@ -274,7 +294,7 @@ async function resetFnWrapper(resetFn: resetItem["resetFn"]) {
                 <v-col cols="12">
                   <v-alert type="warning" variant="tonal">极其危险！！！！</v-alert>
                 </v-col>
-                <v-col md="8">
+                <v-col md="10">
                   <v-list>
                     <v-list-item
                       v-for="item in resetItems"
@@ -288,6 +308,17 @@ async function resetFnWrapper(resetFn: resetItem["resetFn"]) {
                         <v-list-item-action class="mr-2">
                           <v-btn color="red" @click="() => resetFnWrapper(item.resetFn)">重置</v-btn>
                         </v-list-item-action>
+                      </template>
+                      <template v-slot:append>
+                        <v-select
+                          v-if="item.title === '清空站点数据'"
+                          v-model="clearSiteTarget"
+                          :items="siteSelectItems"
+                          label="选择站点"
+                          hide-details
+                          density="compact"
+                          style="min-width: 150px; margin-left: 12px"
+                        />
                       </template>
                     </v-list-item>
                   </v-list>

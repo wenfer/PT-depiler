@@ -10,7 +10,7 @@ import { parseSizeString, parseValidTimeString } from "../utils";
  * Trans Array
  * Source: https://github.com/HDInnovations/UNIT3D-Community-Edition/commit/cb1efe0868caf771b9917c090a79b28b4e183b74
  */
-const idTrans: string[] = ["User ID", "用户ID", "用ID"];
+const idTrans: string[] = ["User ID", "用户 ID", "用ID", "用户ID"];
 const seedingSizeTrans: string[] = ["Seeding Size", "做种体积", "做種體積"];
 const joinTimeTrans: string[] = ["Registration date", "注册日期", "註冊日期"];
 
@@ -121,11 +121,97 @@ export const SchemaMetadata: Partial<ISiteMetadata> = {
         },
       },
       tags: [
-        { name: "Free", selector: "i.fa-star.text-gold, i.fa-globe.text-blue", color: "blue" },
-        { name: "2xUp", selector: "i.fa-gem.text-green", color: "lime" },
+        {
+          name: "Free",
+          selector:
+            "i.fa-star.text-gold, i.fa-globe.text-blue, i[title*='100% Free'], i[title*='Featured'], span[title*='100% Free'], i[data-original-title*='Featured']",
+          color: "blue",
+        },
+        {
+          name: "2xUp",
+          selector:
+            "i.fa-gem.text-green, i[title*='Double Upload'], i[title*='Featured'], i[data-original-title*='Featured']",
+          color: "lime",
+        },
+        {
+          name: "75%",
+          selector: "i[title*='75% Free'], span[title*='75% Free']",
+          color: "lime-darken-3",
+        },
+        {
+          name: "50%",
+          selector: "i[title*='50% Free'], span[title*='50% Free']",
+          color: "deep-orange-darken-1",
+        },
+        {
+          name: "25%",
+          selector: "i[title*='25% Free'], span[title*='25% Free']",
+          color: "blue",
+        },
       ],
     },
   },
+
+  list: [
+    {
+      urlPattern: ["/torrents\[\^/\]"],
+    },
+  ],
+
+  detail: {
+    urlPattern: ["/torrents/\\d+"],
+    selectors: {
+      id: {
+        selector: ":self",
+        elementProcess: (element: Document) => {
+          // 首先尝试从页面的 URL 中获取 ID
+          const url = element.URL;
+          const idMatch = url.match(/\/torrents\/(\d+)/);
+          if (idMatch && idMatch.length >= 2) {
+            return idMatch[1];
+          }
+
+          // 如果 URL 中没有 ID，则尝试从页面解析 a[href*='/torrents/']
+          const torrentLink = element.querySelector("a[href*='/torrents/']");
+          if (torrentLink) {
+            const href = torrentLink.getAttribute("href");
+            const idMatchFromHref = href?.match(/\/torrents\/(\d+)/);
+            if (idMatchFromHref && idMatchFromHref.length >= 2) {
+              return idMatchFromHref[1];
+            }
+          }
+
+          // 如果还是没有，那么我们尽力了，返回underfined
+          return undefined;
+        },
+      },
+
+      title: {
+        selector: [
+          // refs: https://github.com/HDInnovations/UNIT3D/blob/b5d93fdbe493040a1fa1124d2c8499ee0b180937/resources/views/torrent/show.blade.php#L48-L50
+          "h1.torrent__name",
+          "html > body > title",
+        ],
+        switchFilters: {
+          "html > body > title": [
+            (title: string) => {
+              // {{ $torrent->name }} - {{ __('torrent.torrents') }} - {{ config('other.title') }}
+              const titleMatch = title.match(/^(.*) - .* - .+$/);
+              if (titleMatch && titleMatch.length >= 2) {
+                return titleMatch[1];
+              }
+              return title;
+            },
+          ],
+        },
+      },
+      link: {
+        selector: ["a[href*='/download/']", "a[href*='/download_check/']"],
+        attr: "href",
+      },
+    },
+  },
+
   userInfo: {
     selectors: {
       // '/'
@@ -263,8 +349,8 @@ export default class Unit3D extends PrivateSite {
 
     return this.getFieldsData(
       userDetailDocument,
-      Object.keys(omit(this.metadata.userInfo?.selectors!, ["name"])),
       this.metadata.userInfo?.selectors!,
+      Object.keys(omit(this.metadata.userInfo?.selectors!, ["name"])),
     ) as Partial<IUserInfo>;
   }
 }

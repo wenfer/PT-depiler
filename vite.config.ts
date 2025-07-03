@@ -34,6 +34,9 @@ const permissions = [
   "unlimitedStorage",
 ];
 
+const base_version = `${pkg.version}.${git.count()}`;
+const commit_version = `${base_version}+${git.short(__dirname)}`;
+
 // https://vitejs.dev/config/
 export default defineConfig({
   build: {
@@ -63,7 +66,8 @@ export default defineConfig({
         manifest_version: 3,
         "{{chrome}}.minimum_chrome_version": "120",
 
-        version: `${pkg.version}.${git.count()}`,
+        version: base_version,
+        "{{chrome}}.version_name": commit_version,
 
         name: "__MSG_extName__",
         description: "__MSG_extDesc__",
@@ -104,6 +108,13 @@ export default defineConfig({
           open_in_tab: true,
         },
 
+        content_scripts: [
+          {
+            matches: ["*://*/*"],
+            js: ["src/entries/content-script/index.ts"],
+          },
+        ],
+
         // 在 Chrome 中需要多注册一个 offscreen 权限
         "{{chrome}}.permissions": [...permissions, "offscreen"],
         "{{firefox}}.permissions": permissions,
@@ -115,7 +126,26 @@ export default defineConfig({
             strict_min_version: "113.0",
           },
         },
+        "{{firefox}}.content_security_policy": {
+          extension_pages: "script-src 'self';",
+        },
+
+        web_accessible_resources: [
+          {
+            resources: ["icons/*", "lib/*", "pt-depiler.css"],
+            matches: ["*://*/*"],
+          },
+        ],
       }),
+      // vite-plugin-web-extension 会在构造中，将js中引入的css文件自动添加到 manifest 中的 content_scripts 中，我们不需要这种默认行为
+      transformManifest: (manifest) => {
+        manifest.content_scripts.forEach((script) => {
+          if (script.css) {
+            delete script.css;
+          }
+        });
+        return manifest;
+      },
       additionalInputs: target == "chrome" ? ["src/entries/offscreen/offscreen.html"] : undefined,
       watchFilePaths: ["package.json"],
       htmlViteConfig: {
@@ -129,7 +159,9 @@ export default defineConfig({
                   // 特殊情况下 facadeModuleId 可能为 null，这时我们使用 moduleIds 的最后一个作为 chunkName
                   const chunkName = chunkInfo.facadeModuleId || chunkInfo.moduleIds.slice(-1)[0];
 
-                  if (/[\\/]src[\\/]packages[\\/](downloader|backupServer|site|social).+\.ts/.test(chunkName)) {
+                  if (
+                    /[\\/]src[\\/]packages[\\/](downloader|backupServer|site|social|mediaServer).+\.ts/.test(chunkName)
+                  ) {
                     const name = chunkName.replace(/^.+?[\\/]src[\\/]/, "").replace(/\..+?$/, "");
                     return `${name}-[hash].js`;
                   }
@@ -156,7 +188,7 @@ export default defineConfig({
   },
   define: {
     __BROWSER__: JSON.stringify(target),
-    __EXT_VERSION__: JSON.stringify(`v${pkg.version}.${git.count()}+${git.short(__dirname)}`),
+    __EXT_VERSION__: JSON.stringify(`v${commit_version}`),
     __GIT_VERSION__: {
       short: git.short(__dirname),
       long: git.long(__dirname),

@@ -52,7 +52,7 @@ export const siteMetadata: ISiteMetadata = {
   type: "private",
   schema: "FSM",
 
-  urls: ["ROT13:uggcf://sfz.anzr/"],
+  urls: ["uggcf://sfz.anzr/"],
   formerHosts: [],
 
   category: [
@@ -106,7 +106,7 @@ export const siteMetadata: ISiteMetadata = {
       id: { selector: "tid" },
       title: { selector: "title" },
       // subtitle: 不返回，在 class 中单独构造
-      url: { selector: "tid", filters: [{ name: "perpend", args: ["Torrents/details?tid="] }] },
+      url: { selector: "tid", filters: [{ name: "prepend", args: ["Torrents/details?tid="] }] },
       // link: 不返回，在 class 中单独构造
       time: { selector: "createdTs" },
       size: { selector: "fileRawSize" },
@@ -196,6 +196,7 @@ export const siteMetadata: ISiteMetadata = {
   },
   levelRequirements,
 
+  /*
   userInputSettingMeta: [
     {
       name: "token",
@@ -210,6 +211,7 @@ export const siteMetadata: ISiteMetadata = {
       required: true,
     },
   ],
+   */
 } as const;
 
 interface IFsmActress {

@@ -132,7 +132,7 @@ export const SchemaMetadata: Pick<
         ...baseLinkQuery,
         filters: [
           { name: "querystring", args: ["id"] },
-          { name: "perpend", args: ["/details.php?id="] },
+          { name: "prepend", args: ["/details.php?id="] },
         ],
       }, // 种子页面链接
       id: {
@@ -225,6 +225,36 @@ export const SchemaMetadata: Pick<
 
   detail: {
     urlPattern: ["/details.php"],
+
+    selectors: {
+      title: {
+        selector: ["h1#top", "html > body > title"],
+        switchFilters: {
+          "h1#top": [
+            (title: string) => {
+              // ^(.+?)   .+$
+              let titleMatch = title.match(/^(.+?) +.+$/);
+              if (titleMatch && titleMatch.length >= 2) {
+                return titleMatch[1].trim();
+              }
+              return title;
+            },
+          ],
+
+          "html > body > title": [
+            (title: string) => {
+              // {siteName} :: 种子详情 "{torrentName}" - Powered by NexusPHP
+              let titleMatch = title.match(/"(.+)" - Powered by NexusPHP$/);
+              if (titleMatch && titleMatch.length >= 3) {
+                return titleMatch[2].trim();
+              }
+              return title;
+            },
+          ],
+        },
+      },
+      link: { selector: ['a[href*="download.php?id="]'], attr: "href" },
+    },
   },
 
   userInfo: {
@@ -376,6 +406,27 @@ export const SchemaMetadata: Pick<
           },
         ],
       },
+      hnrPreWarning: {
+        // example: H&R: 2/1/5
+        text: 0,
+        selector: ["#info_block a[href*='myhr.php']:last"],
+        filters: [
+          (query: string | number) => {
+            const queryMatch = String(query || "").match(/\d+/);
+            return queryMatch && queryMatch.length >= 1 ? parseInt(queryMatch[0]) : 0;
+          },
+        ],
+      },
+      hnrUnsatisfied: {
+        text: 0,
+        selector: ["#info_block a[href*='myhr.php']:last"],
+        filters: [
+          (query: string | number) => {
+            const queryMatch = String(query || "").match(/\d+\s*\/\s*(\d+)/);
+            return queryMatch && queryMatch.length >= 2 ? parseInt(queryMatch[1]) : 0;
+          },
+        ],
+      },
 
       bonusPerHour: {
         selector: [
@@ -415,6 +466,8 @@ export const SchemaMetadata: Pick<
           "joinTime",
           "seeding",
           "seedingSize",
+          "hnrUnsatisfied",
+          "hnrPreWarning",
         ],
       },
       {
@@ -508,7 +561,7 @@ export default class NexusPHP extends PrivateSite {
     }
 
     // 导入用户发布信息
-    if (flushUserInfo.status === EResultParseStatus.success && typeof flushUserInfo.published === "undefined") {
+    if (flushUserInfo.status === EResultParseStatus.success && typeof flushUserInfo.uploads === "undefined") {
       flushUserInfo = (await this.parseUserInfoForUploads(flushUserInfo)) as IUserInfo;
     }
 
@@ -561,7 +614,7 @@ export default class NexusPHP extends PrivateSite {
           }
 
           trAnothers.forEach((trAnother) => {
-            const sizeSelector = Sizzle(`td.rowfollow:eq(${sizeIndex})`, trAnother)[0] as HTMLElement;
+            const sizeSelector = Sizzle(`td:eq(${sizeIndex})`, trAnother)[0] as HTMLElement;
             seedStatus.seedingSize += parseSizeString(sizeSelector.innerText.trim());
           });
         }
@@ -579,7 +632,15 @@ export default class NexusPHP extends PrivateSite {
     const userId = flushUserInfo.id as number;
     const userUploadsRequestString = await this.requestUserSeedingPage(userId, "uploaded");
     flushUserInfo.uploads = 0;
-    if (userUploadsRequestString && userUploadsRequestString?.includes("<table")) {
+
+    if (
+      // 先按关键字匹配
+      userUploadsRequestString &&
+      /<b>\d+<\/b>(条记录| records|條記錄)|No record.|没有记录|沒有記錄/.test(userUploadsRequestString)
+    ) {
+      flushUserInfo.uploads = Number(userUploadsRequestString.match(/<b>(\d+)<\/b>(条记录| records|條記錄)/)?.[1] ?? 0);
+    } else if (userUploadsRequestString && userUploadsRequestString?.includes("<table")) {
+      // 未匹配到关键字，则从表格中解析
       const userUploadsDocument = createDocument(userUploadsRequestString);
       const divSeeding = Sizzle("div > div:contains(' | ')", userUploadsDocument);
       if (divSeeding.length > 0 && divSeeding[0].textContent) {
@@ -590,6 +651,7 @@ export default class NexusPHP extends PrivateSite {
         flushUserInfo.uploads = trAnothers.length;
       }
     }
+
     return flushUserInfo;
   }
 
@@ -616,5 +678,14 @@ export default class NexusPHP extends PrivateSite {
     }
 
     return torrent;
+  }
+
+  public override async getTorrentDownloadLink(torrent: ITorrent): Promise<string> {
+    // 对 NPHP 站点，如果前端拖拽功能发来的种子链接是 details.php?id=123 的形式，
+    if (torrent.link && torrent.link.includes("/details.php")) {
+      return torrent.link.replace(/details\.php\?id=(\d+)/, "download.php?id=$1").replace(/&hit=1/, ""); // hit=1 是为了统计下载次数
+    }
+
+    return super.getTorrentDownloadLink(torrent);
   }
 }

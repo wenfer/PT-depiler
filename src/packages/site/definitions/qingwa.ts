@@ -330,10 +330,10 @@ export const siteMetadata: ISiteMetadata = {
   tags: ["综合", "影视", "动漫", "儿童区", "纪录片"],
 
   urls: [
-    "ROT13:uggcf://jjj.dvatjncg.pbz/",
-    "ROT13:uggcf://jjj.dvatjncg.bet/",
-    "ROT13:uggcf://jjj.dvatjn.ceb/",
-    "ROT13:uggcf://dvatjncg.pbz/", // 增加一个和ptpp中 host 一样的url （经过实测也能访问）
+    "uggcf://jjj.dvatjncg.pbz/",
+    "uggcf://jjj.dvatjncg.bet/",
+    "uggcf://jjj.dvatjn.ceb/",
+    "uggcf://dvatjncg.pbz/", // 增加一个和ptpp中 host 一样的url （经过实测也能访问）
   ],
   collaborator: ["Eason Wong"],
 
@@ -353,16 +353,12 @@ export default class QingWa extends NexusPHP {
     if (userSeedingRequestString && userSeedingRequestString?.includes("<table")) {
       const userSeedingDocument = createDocument(userSeedingRequestString);
       seedStatus.seeding = this.getFieldData(userSeedingDocument, {
-        selector: "b:first",
+        selector: "#total_count",
         filters: [{ name: "parseNumber" }],
       });
 
       seedStatus.seedingSize = this.getFieldData(userSeedingDocument, {
-        selector: [
-          "div:has(b):contains('总大小')",
-          "div:has(b):contains('總大小')",
-          "div:has(b):contains('Total size')",
-        ],
+        selector: ["#total_size"],
         filters: [{ name: "parseSize" }],
       });
     }

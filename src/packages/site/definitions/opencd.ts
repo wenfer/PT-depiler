@@ -38,7 +38,7 @@ export const siteMetadata: ISiteMetadata = {
   type: "private",
   schema: "NexusPHP",
 
-  urls: ["https://open.cd/", "https://www.open.cd/"],
+  urls: ["uggcf://bcra.pq/", "uggcf://jjj.bcra.pq/"],
   favicon: "./opencd.ico",
 
   category: [
@@ -237,7 +237,7 @@ export const siteMetadata: ISiteMetadata = {
       status: selectorSearchStatus,
       tags: [
         ...SchemaMetadata.search!.selectors!.tags!,
-        { selector: "img[src*='pic/share_rule_1.gif']", name: "Excl." }, // 禁转
+        { selector: "img[src*='pic/share_rule_1.gif']", name: "Excl.", color: "deep-orange-darken-1" }, // 禁转
       ],
     },
   },
@@ -314,6 +314,11 @@ export const siteMetadata: ISiteMetadata = {
       ratio: 5.0,
       alternative: [{ downloaded: "3TB" }, { uploads: 600 }],
       privilege: "得到十个邀请名额。",
+    },
+    {
+      id: 100,
+      name: "貴賓(VIP)",
+      groupType: "vip",
     },
   ],
 };

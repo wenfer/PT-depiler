@@ -31,7 +31,14 @@ export interface ISiteUserInputMeta {
  * 站点配置，这部分配置由系统提供，并随着每次插件更新而更新
  */
 export interface ISiteMetadata {
-  readonly id: TSiteID; // 必须和站点文件名（无扩展）相同
+  /**
+   * 站点的id，全局唯一，必须和站点文件名（无扩展）相同
+   * 应该是一个符合正则表达式 /[0-9a-z]+/ 的字符串（无大写字母、无特殊字符）
+   *
+   * 额外的，如果 https://github.com/Jackett/Jackett/tree/master/src/Jackett.Common/Definitions 中有相同站点配置，
+   * 建议与其相同命名
+   */
+  readonly id: TSiteID;
 
   /**
    * 对应解析的更新版本，建议每次对ISiteMetadata的修改都对此版本号 +1
@@ -53,10 +60,14 @@ export interface ISiteMetadata {
   readonly collaborator?: string[]; // 提供该站点解决方案的协作者
 
   /**
-   * 指定继承模板类型，如果未填写的话，且站点配置文件抛出了 default class 的话，会忽略掉此处的 schema 参数
+   * type 和 schema 共同描述了站点实例 的构建方法
+   *
+   * type 用于指示这个站点的类型
+   * schema 用于指定继承模板类型，如果未填写的话，且站点配置文件抛出了 default class 的话，会忽略掉此处的 schema 参数
    * 否则会根据其 type类型 进行自动更正为缺省值：
    *  - public 类型下， schema 的缺省值为 AbstractBittorrentSite
    *  - private 类型下， schema 的缺省值为 AbstractPrivateSite
+   *
    */
   readonly type: "private" | "public"; // 站点类型
   schema?: SiteSchema;
@@ -97,7 +108,12 @@ export interface ISiteMetadata {
 
   category?: ISearchCategories[];
 
-  search?: ISearchConfig; // 站点搜索方法如何配置
+  /**
+   * 站点搜索方法配置（主要用于插件 options 的适配）
+   *
+   * 由 AbstractBittorrentSite.transformSearchPage 方法进行转换，如果子类有覆写请按子类覆写逻辑理解
+   */
+  search?: ISearchConfig;
 
   /**
    * 当用户使用默认搜索入口时启动的搜索方法，一般不需要定义（即不定义时自动使用 search.requestConfig），除非有以下情况才建议使用：
@@ -107,19 +123,22 @@ export interface ISiteMetadata {
   searchEntry?: Record<string, ISearchEntryRequestConfig>;
 
   /**
-   * 种子列表页配置（主要用于展示插件）
+   * 种子列表页配置（主要用于插件 content-script 的适配）
+   *
+   * 由 AbstractBittorrentSite.transformListPage 方法进行转换，如果子类有覆写请按子类覆写逻辑理解
+   *
    * 注：只有极其特殊的情况下才需要定义此处的 selectors ，未定义时，会使用Search中定义的信息
    * 一般如下：
    *  - 使用 AJAX 方法异步加载页面种子
    */
-  list?: {
+  list?: Array<{
     /**
-     * 在 web 访问时，哪些些页面会被认为是种子列表页，被认为是种子列表页的页面会被插件自动添加种子列表批量下载、复制、推送的功能
+     * 在 web 访问时，哪些些页面会被认为是种子列表页，被认为是种子列表页的页面会被插件自动添加种子列表批量下载、链接复制、远程推送的功能
      *
-     * 一般情况下，这里不需要额外的声明， 插件会自动根据 search.requestConfig.url 以及 searchEntry[*].requestConfig.url 中的 url 自动生成，
-     * 只有当自动生成的 urlPattern 仍不能覆盖时，才需要在此处进行增加
+     * 如果定义了 urlPattern 插件会严格按照 urlPattern 进行匹配，
+     * 不然，插件会自动根据 search.requestConfig.url 以及 searchEntry[*].requestConfig.url 中的 url 自动生成，
+     * 字段为 uniq([search.requestConfig.url, ...searchEntry[*].requestConfig.url])
      *
-     * 实际使用作为匹配的字段为 uniq([...list.urlPattern, search.requestConfig.url, ...searchEntry[*].requestConfig.url])
      * 如果 pattern 为 string，会使用 new RegExp(pattern, 'i') 生成 RegExp 对象，
      * 如果 pattern 为 RegExp 对象，则直接使用该对象
      *
@@ -127,35 +146,64 @@ export interface ISiteMetadata {
      */
     urlPattern?: (string | RegExp)[];
 
+    mergeSearchSelectors?: boolean; // 是否合并 search.selectors 中的配置到此处的 selectors 中，默认为 true
+
     /**
-     * 对于种子列表页的解析配置，默认会使用 search.requestConfig.selectors 中的配置，
+     * 对于种子列表页的解析配置，默认会使用 search.requestConfig.selectors 中的配置作为垫片
+     * 需要至少解析出 id, title, url, link
+     * 如果 link 不能解析出来，会调用 AbstractBittorrentSite.getTorrentDownloadLink 方法来获取下载链接
+     * 如果解析出 subTitle, seeders, leechers, completed, time, size ，会在高级列表中显示
      *
      * 额外增加字段说明：
-     * keywords: 用于获取种子列表页中正在使用的搜索关键词，如果获取到非空字符串，则会显示 "在插件中搜索的标识"
-     *   如果未设置，插件会自动根据 search.keywordPath 或 searchEntry[*].keywordPath 来推断，比如：
-     *     - search.keywordPath 为 params.keywords 时，keywords 会被自动推断为 { selector: 'input[name="keywords"]' }
-     *     - search.keywordPath 为 data.keywords 时，keywords 会被自动推断为 { selector: 'form[method="post" i] input[name="keywords"]' }
+     * keywords: 用于获取种子列表页中正在使用的搜索关键词，如果获取到非空字符串，则在点击 "在插件中搜索的标识" 时自动填充该关键词
+     *   如果未设置，AbstractBittorrentSite.transformListPage 会自动根据 search.keywordPath 或 searchEntry[*].keywordPath 来推断，
+     *   比如：
+     *     - search.keywordPath 为 params.xxxx 时，keywords 会被自动推断为 { selector: 'input[name="xxxx"]' }
+     *     - search.keywordPath 为 data.xxxx 时，keywords 会被自动推断为 { selector: 'form[method="post" i] input[name="xxxx"]' }
+     *     - 如果仍未找到，则会尝试从url中解析 &xxxx= 以及 &search= , &keywords= , &keyword=, $q= 字段内容
      */
     selectors?: ISearchConfig["selectors"] & { keywords?: IElementQuery };
-  };
+  }>;
 
   /**
-   * 种子详情页配置
+   * 种子详情页配置（主要用于插件 content-script 、 部分无法在搜索中构造种子 link 站点的适配）
+   *
+   * 由 AbstractBittorrentSite.{transformDetailPage, getTorrentDownloadLink} 方法进行转换，如果子类有覆写请按子类覆写逻辑理解
    */
   detail?: {
     /**
-     * 在 web 访问时，哪些些页面会被认为是种子详情页，被认为是种子列表页的页面会被插件自动添加种子下载、复制、推送的功能
+     * 在 web 访问时，哪些些页面会被认为是种子详情页，被认为是种子列表页的页面会被插件自动添加种子下载、链接复制、远程推送的功能
      *
-     * 只有在定义 detail.requestConfig 时，才会自动生成该项，其他情况下无法进行自动生成，需要显式声明（一般情况下 schema 中已有相关声明）
+     * urlPattern 无法进行自动生成，需要显式声明（一般情况下 schema 中已有相关声明）
      * 其他表现和 list.urlPattern 相同。
      */
     urlPattern?: (string | RegExp)[];
 
+    /**
+     * 插件获取种子详情页时的配置，默认是在种子搜索时无法获取 link 的特殊站点使用，在使用时有垫片如下：
+     *   { responseType: "document", url: torrent.url }
+     */
     requestConfig?: AxiosRequestConfig;
 
+    /**
+     * 对于种子详情页的解析配置
+     *
+     * 对页面解析需要至少解析出 id, title, url, link
+     * 注意 我们使用 typeof link != 'undefined' 来确定是否获取到正确的信息
+     *
+     * 注意：
+     * 1. 为了尽可能减少配置，AbstractBittorrentSite.transformDetailPage 中预设了以下规则
+     *      - 如果未定义 url 的 selector，则 url 会被自动设置为 doc.URL || location.href
+     *      - 如果未定义 id 的 selector，且 url 中有 `&id=` 或者 `&tid=` 字段，则会被自动解析为 id
+     *                                 如果 url 中没有 `&id=` 或者 `&tid=` 字段，则 id 会被自动设置为 url
+     *      - 如果未定义 title 的 selector，则 html > body > title 会被自动设置为 title
+     *    其他模板的详见 metadata 或 override function 情况
+     *
+     * 2. AbstractBittorrentSite.getTorrentDownloadLink 中会使用 link 的 selector 来获取下载链接
+     */
     selectors?: {
       link?: IElementQuery; // 用于获取下载链接不在搜索页，而在详情页的情况
-      [key: string]: IElementQuery | undefined; // FIXME
+      [key: string]: IElementQuery | undefined;
     } & Omit<ISearchConfig["selectors"], "rows">; // 种子相关选择器
   };
 
@@ -228,6 +276,7 @@ export interface ISiteMetadata {
 
   /**
    * 站点用户等级定义
+   * 对设置了 isDead: true 的站点请注释或删除该项
    */
   levelRequirements?: ILevelRequirement[];
 
@@ -279,10 +328,22 @@ export interface ISiteUserConfig {
   // 在批量下载每个种子时，与（本站）上一个种子之间的间隔时间，单位为秒，如果不设置默认为 0
   downloadInterval?: number;
 
+  // 上传速度限制，单位为 MB/s，0 或不填时不限速，用于推送种子文件到下载器的时候，传递上传速度限制
+  uploadSpeedLimit?: number;
+
+  allowContentScript?: boolean; // 是否允许 content-script 访问该站点，默认为 true
+
   /**
    * 存储用户输入的配置项信息
    */
   inputSetting?: Record<ISiteUserInputMeta["name"], string>;
+
+  /**
+   * 站点实例在运行过程中生成的配置项
+   * 该部分内容设置时需要使用 this.storeRuntimeSettings(key, value) 方法进行设置，
+   * value 可以是任意可以 Json 化的字段
+   */
+  runtimeSettings?: Record<string, any>;
 
   /**
    * 如果存在该项，则该项会在站点实例化时使用 toMerged 方法合并到 config 中，此处主要用于用户在特殊情况下覆盖默认配置
@@ -292,3 +353,10 @@ export interface ISiteUserConfig {
 
   [key: string]: any;
 }
+
+export interface IParsedTorrentListPage {
+  keywords: string;
+  torrents: ITorrent[];
+}
+
+export type TSchemaMetadataListSelectors = Required<Required<Required<ISiteMetadata>["list"]>[number]>["selectors"];

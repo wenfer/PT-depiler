@@ -4,10 +4,11 @@ import { omit } from "es-toolkit";
 import { computed, ref, shallowRef } from "vue";
 import {
   definitionList,
-  getHostFromUrl,
-  parseSizeString,
   EResultParseStatus,
+  getHostFromUrl,
   type IUserInfo,
+  parseSizeString,
+  parseValidTimeString,
   type TSiteHost,
   type TSiteID,
 } from "@ptd/site";
@@ -54,7 +55,7 @@ const userInfoTransferMap = {
   unsatisfiedsPage: false,
   // classPoints?: number; // 等级积分
   unsatisfieds: { key: "hnrUnsatisfied", format: (v) => Number(v) },
-  prewarn: "hnrPerWarning",
+  prewarn: "hnrPreWarning",
   lastUpdateTime: "updateAt",
   lastUpdateStatus: {
     key: "status",
@@ -65,6 +66,19 @@ const userInfoTransferMap = {
   lastErrorMsg: false,
   // uniqueGroups?: number; // 独特分组
   // perfectFLAC?: number; // “完美”FLAC
+  joinTime: {
+    key: "joinTime",
+    format: (v: any) => {
+      if (typeof v === "number") {
+        if (v > 1e12) return v; // 13位时间戳
+        if (v > 1e9) return v * 1000; // 10位时间戳转13位
+      }
+      if (typeof v === "string" && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(v)) {
+        return parseValidTimeString(v);
+      }
+      return v;
+    },
+  },
 } as Record<keyof IPtppUserInfo, TUserInfoTransfer>;
 
 const isImporting = ref<boolean>(false);
@@ -132,7 +146,7 @@ async function doImport() {
     await sendMessage("cleanupFlushUserInfoJob", undefined);
 
     // 读出目前所有的 userInfo
-    const userInfoStorage = (await sendMessage("getExtStorage", "userInfo")) as TUserInfoStorageSchema;
+    const userInfoStorage = ((await sendMessage("getExtStorage", "userInfo")) as TUserInfoStorageSchema) ?? {};
 
     // 开始转换数据
     for (const [host, data] of Object.entries(ptppUserData)) {
@@ -147,12 +161,12 @@ async function doImport() {
           latestUserInfo?.lastUpdateStatus === "success" &&
           (latestUserInfo?.lastUpdateTime ?? -1) > (metadataStore.lastUserInfo[siteId]?.updateAt ?? 0)
         ) {
-          metadataStore.lastUserInfo[siteId] = transferUserInfo(latestUserInfo);
+          metadataStore.lastUserInfo[siteId] = { ...transferUserInfo(latestUserInfo), site: siteId };
         }
 
         for (const [date, userData] of Object.entries(omit(data, ["latest"]))) {
           if (typeof userInfoStorage[siteId][date] == "undefined" || overwriteExistUserInfo.value) {
-            userInfoStorage[siteId][date] = transferUserInfo(userData);
+            userInfoStorage[siteId][date] = { ...transferUserInfo(userData), site: siteId };
           }
         }
       }
@@ -178,15 +192,26 @@ async function entryDialog() {
   // 构造 allSupportedSiteHostMap
   const siteHostMap: Record<TSiteHost, TSiteID> = {};
   for (const siteId of definitionList) {
+    // 用户自定义的 url
     if (metadataStore.sites[siteId]?.url) {
       siteHostMap[getHostFromUrl(metadataStore.sites[siteId].url)] = siteId;
     }
+
+    // 站点定义中的 urls
     const urls = await metadataStore.getSiteMergedMetadata(siteId, "urls", []);
     if (urls.length > 0) {
       for (const url of urls) {
         siteHostMap[getHostFromUrl(url)] = siteId;
       }
     }
+
+    // 站点定义中的 host
+    const host = await metadataStore.getSiteMergedMetadata(siteId, "host", "");
+    if (host) {
+      siteHostMap[host] = siteId;
+    }
+
+    // 站点定义中的 formerHosts
     const formerHosts = (await metadataStore.getSiteMergedMetadata(siteId, "formerHosts", []))!;
     if (formerHosts.length > 0) {
       for (const host of formerHosts) {

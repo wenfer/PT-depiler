@@ -34,7 +34,7 @@ PT-depiler 是在原 [PT-Plugin-Plus](https://github.com/pt-plugins/PT-Plugin-Pl
 
 |          浏览器           | 状态                                                                                                                                                                                                                                                                                                                                |
 |:----------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|    Chrome Web Store    | 已提交待审核                                                                                                                                                                                                                                                                                                                            | 
+|    Chrome Web Store    | [![Google Chrome](https://img.shields.io/chrome-web-store/v/iloddidemhbedaopmipajgclofjocogb.svg?label=Google%20Chrome)](https://chromewebstore.google.com/detail/pt-depiler/iloddidemhbedaopmipajgclofjocogb)                                                                                                                    | 
 |    Firefox Add-ons     | [![Mozilla Firefox](https://img.shields.io/amo/v/pt-depiler.svg?label=Mozilla%20Firefox)](https://addons.mozilla.org/zh-CN/firefox/addon/pt-depiler/)                                                                                                                                                                             | 
 | Microsoft Edge Add-ons | [![Microsoft Edge](https://img.shields.io/badge/dynamic/json?label=Edge%20Addons&prefix=v&query=%24.version&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2FAddons%2Fgetproductdetailsbycrxid%2Fkbijhmckhndmeckonoikakdfdlbnlkde)](https://microsoftedge.microsoft.com/addons/detail/pt-depiler/kbijhmckhndmeckonoikakdfdlbnlkde) |
 
@@ -73,7 +73,7 @@ PT-Depiler 并不是对 PT-Plugin-Plus 的简单移植，而是对其进行了�
 
 > 请不要在 Issue 中提出一般性问题。Issue 仅用于报告错误、提出改进建议或请求新功能。
 
-我们还有一个 [help wanted](../../labels/help%20wanted) 的问题列表，您可能会感兴趣。
+我们还有一个 [help wanted](../../labels/%22help%20wanted%22) 的问题列表，您可能会感兴趣。
 
 ### 📝 许可证 License
 
