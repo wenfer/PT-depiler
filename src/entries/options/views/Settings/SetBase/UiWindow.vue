@@ -60,6 +60,22 @@ defineExpose({
         hide-details
         label="记忆部分表格的 表头列展示、排序、分页 等信息"
       />
+
+      <v-switch
+        v-model="configStore.enableTableMultiSort"
+        color="success"
+        hide-details
+        label="启用部分表格的多列排序功能"
+      >
+        <template #append>
+          <v-tooltip max-width="400" location="bottom">
+            <template v-slot:activator="{ props }">
+              <v-icon color="info" icon="mdi-help-circle" v-bind="props" />
+            </template>
+            {{ t("SetBase.ui.tableMultiSortNote") }}
+          </v-tooltip>
+        </template>
+      </v-switch>
     </v-col>
   </v-row>
 

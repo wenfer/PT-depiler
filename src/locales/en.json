@@ -43,7 +43,9 @@
     "test": "Test",
     "visit": "Visit",
     "version": "Version",
-    "howToUse": "How To Use"
+    "howToUse": "How To Use",
+    "import": "Import",
+    "export": "Export"
   },
   "layout": {
     "header": {
@@ -144,6 +146,7 @@
     "leeching": "Leeching Torrents",
     "snatches": "Completed Torrents",
     "posts": "Posted Threads",
+    "hnrPreWarning": "PreWarning H&R Count",
     "hnrUnsatisfied": "Unsatisfied H&R Count"
   },
   "resultParseStatus": {
@@ -153,6 +156,8 @@
     "success": "Fetch Successful!",
     "parseError": "Parse Error!",
     "passParse": "Not Enabled!",
+    "CFBlocked": "Cloudflare Error!",
+    "CFBlockedNotes": "It may be because the site has enabled CloudFlare's security protection, which makes it impossible to retrieve data. You can first try to manually access the site once to pass the verification. If that doesn't work, just wait for the site to recover on its own.",
     "needLogin": "Login Required!",
     "noResults": "No Results!",
     "unknown": "Unknown Status!"
@@ -191,7 +196,9 @@
   },
   "MediaServerEntity": {
     "searchPlaceholder": "Search term",
-    "detail": "Details"
+    "detail": "Details",
+    "loadMore": "Load More",
+    "noItems": "No Items, use Search Input or Load More Button to Load"
   },
   "MyData": {
     "index": {
@@ -365,16 +372,18 @@
         "dark": "Dark Mode",
         "index": "UI display mode",
         "light": "Light Mode"
-      }
+      },
+      "tableMultiSortNote": "Multi-column sorting: Click any table header field to start sorting, which will display the number \\\"1\\\" on the field. Click other fields sequentially to display \\\"2\\\", \\\"3\\\", indicating sorting priority. Click the same field again to toggle between ascending, descending, or cancel sorting. The sorting order is determined by these numbers, with smaller numbers having higher priority."
     },
     "download": {
-      "localDownloadMethod": {
+      "localDownloadMethod": "Local Download Method",
+      "localDownloadMethodOptions": {
         "web": "Web Page",
-        "webTip": "Open the page corresponding to the download link (only applicable to the simplest method; if conditions are not met, it will fall back to @:SetBase.download.localDownloadMethod.extension )",
+        "webTip": "Open the page corresponding to the download link (only applicable to the simplest method; if conditions are not met, it will fall back to @:SetBase.download.localDownloadMethodOptions.extension )",
         "browser": "Browser Method",
         "browserTip": "(RECOMMEND) Use the browser's download method provided by the extension to download directly",
         "extension": "Extension Proxy",
-        "extensionTip": "The extension downloads the torrent in the background and proxies it to @:SetBase.download.localDownloadMethod.browser for downloading"
+        "extensionTip": "The extension downloads the torrent in the background and proxies it to @:SetBase.download.localDownloadMethodOptions.browser for downloading"
       },
       "saveDownloadHistory": "Save download history (Please do not disable this function unless necessary)",
       "localDownloadTitle": "Local Download",
@@ -560,7 +569,8 @@
       "name": "Name",
       "backupFields": "Backup Content",
       "lastBackupAt": "Last Backup Time",
-      "notBackup": "Not Backed Up"
+      "notBackup": "Not Backed Up",
+      "enabled": "Enabled"
     },
     "localExport": "Local Export",
     "localImport": "Local Import",

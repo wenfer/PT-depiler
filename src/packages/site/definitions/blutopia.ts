@@ -8,12 +8,13 @@ export const siteMetadata: ISiteMetadata = {
   name: "Blutopia",
   tags: ["影视", "综合"],
   timezoneOffset: "+0000",
-  collaborator: ["haowenwu"],
+  collaborator: ["bimzcy", "lengmianxia", "haowenwu"],
 
   type: "private",
   schema: "Unit3D",
 
   urls: ["uggcf://oyhgbcvn.pp/"],
+  formerHosts: ["blutopia.xyz"],
 
   userInfo: {
     selectors: {
@@ -32,18 +33,14 @@ export const siteMetadata: ISiteMetadata = {
         selector: "div.panel__body a.user-tag__link",
         attr: "title",
       },
-      uploads: {
-        selector: ["li.top-nav__dropdown > a[href*='uploads']"],
-        filters: [{ name: "parseNumber" }],
-      },
       joinTime: {
         selector: ["time"],
         attr: "datetime",
         filters: [{ name: "parseTTL" }],
       },
-    }
+    },
   },
-  
+
   levelRequirements: [
     {
       id: 1,
@@ -186,6 +183,7 @@ export const siteMetadata: ISiteMetadata = {
 
   search: {
     ...SchemaMetadata.search,
+    skipNonLatinCharacters: true,
     requestConfig: {
       url: "/torrents",
     },
@@ -213,25 +211,23 @@ export const siteMetadata: ISiteMetadata = {
         selector: ["a.torrent-search--list__name"],
       },
       category: {
-        selector: [
-          'div.torrent-search--list__category img',
-        ],
+        selector: ["div.torrent-search--list__category img"],
         attr: "alt",
       },
       size: {
-        selector: ['td.torrent-search--list__size'],
+        selector: ["td.torrent-search--list__size"],
       },
       seeders: {
-        selector: ['td.torrent-search--list__seeders'],
+        selector: ["td.torrent-search--list__seeders"],
       },
       leechers: {
-        selector: ['td.torrent-search--list__leechers'],
+        selector: ["td.torrent-search--list__leechers"],
       },
       completed: {
-        selector: ['td.torrent-search--list__completed'],
+        selector: ["td.torrent-search--list__completed"],
       },
       comments: {
-        selector: ['i.torrent-icons__comments'],
+        selector: ["i.torrent-icons__comments"],
       },
     },
   },

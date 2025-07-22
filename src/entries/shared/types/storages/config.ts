@@ -27,6 +27,7 @@ export interface IConfigPiniaStorageSchema {
   ignoreWrongPixelRatio: boolean;
 
   saveTableBehavior: boolean;
+  enableTableMultiSort: boolean; // 是否启用表格多列排序
 
   // 用于存储 v-data-table 表格的展示
   tableBehavior: Record<UiTableBehaviorKey, UiTableBehaviorItem>;
@@ -109,8 +110,7 @@ export interface IConfigPiniaStorageSchema {
     showChart: Record<
       | "totalSiteBase"
       | "totalSiteSeeding"
-      | `perSiteK${"uploaded" | "downloaded" | "seeding" | "seedingSize" | "bonus"}`
-      | `perSiteK${"uploaded" | "downloaded" | "seeding" | "seedingSize" | "bonus"}Incr`,
+      | `perSiteK${"uploaded" | "downloaded" | "seeding" | "seedingSize" | "bonus"}${"" | "Incr"}`,
       boolean
     >;
     dateRange: number | "custom" | "all";
@@ -174,6 +174,8 @@ export interface IConfigPiniaStorageSchema {
     saveLastFilter: boolean;
     // 搜索时的最大并发数
     queueConcurrency: number;
+    // 是否将 tt\d{7,8} 的搜索词视为 IMDb 搜索
+    treatTTQueryAsImdbSearch: boolean;
   };
 
   // 配置同样在 searchEntity 页面（偷懒下）

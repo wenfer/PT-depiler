@@ -15,7 +15,9 @@ export const useConfigStore = defineStore("config", {
     theme: "light",
     isNavBarOpen: true,
     ignoreWrongPixelRatio: false,
+
     saveTableBehavior: true,
+    enableTableMultiSort: false,
 
     contextMenus: {
       allowSelectionTextSearch: true,
@@ -177,6 +179,7 @@ export const useConfigStore = defineStore("config", {
     searchEntity: {
       saveLastFilter: false,
       queueConcurrency: 1,
+      treatTTQueryAsImdbSearch: false,
     },
 
     mediaServerEntity: {
